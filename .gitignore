@@ -1,0 +1,128 @@
+# Laravel
+/node_modules
+/public/hot
+/public/storage
+/storage/*.key
+/vendor
+.env
+.env.backup
+.env.production
+.phpunit.result.cache
+Homestead.json
+Homestead.yaml
+auth.json
+npm-debug.log
+yarn-error.log
+/.fleet
+/.idea
+/.vscode
+
+# Laravel specific
+/bootstrap/cache/*
+!/bootstrap/cache/.gitignore
+/storage/app/*
+!/storage/app/.gitignore
+/storage/app/private/*
+!/storage/app/private/.gitignore
+/storage/app/public/*
+!/storage/app/public/.gitignore
+/storage/framework/cache/*
+!/storage/framework/cache/.gitignore
+/storage/framework/sessions/*
+!/storage/framework/sessions/.gitignore
+/storage/framework/testing/*
+!/storage/framework/testing/.gitignore
+/storage/framework/views/*
+!/storage/framework/views/.gitignore
+/storage/logs/*
+!/storage/logs/.gitignore
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Desktop.ini
+
+# Logs
+*.log
+logs/
+*.log.*
+
+# Temporary files
+*.tmp
+*.temp
+*.cache
+.cache/
+
+# Build files
+/public/build
+/public/mix-manifest.json
+/public/hot
+
+# Testing
+/coverage
+.phpunit.result.cache
+
+# Package files
+package-lock.json
+yarn.lock
+
+# Compiled assets
+/public/css
+/public/js
+/public/mix-manifest.json
+
+# User uploads (if stored in public)
+/public/uploads/*
+!/public/uploads/.gitkeep
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Compressed/Archive files
+*.zip
+*.rar
+*.7z
+*.tar
+*.tar.gz
+*.tgz
+*.gz
+*.bz2
+*.xz
+*.lz
+*.lzma
+*.cab
+*.iso
+*.dmg
+*.pkg
+*.deb
+*.rpm
+*.msi
+*.exe
+*.dll
+*.so
+*.dylib
+
+# Database
+*.sqlite
+*.sqlite-journal
+*.db
+
+# Environment files
+.env.*
+!.env.example
+
