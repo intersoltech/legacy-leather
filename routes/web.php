@@ -150,10 +150,14 @@ Route::prefix('admin')
             ->name('admin.products.destroy');
 
         // CATEGORIES
-        Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)->except(['show']);
+        Route::resource('categories', \App\Http\Controllers\Admin\CategoryController::class)
+            ->except(['show'])
+            ->names('admin.categories');
 
         // BANNERS
-        Route::resource('banners', \App\Http\Controllers\Admin\BannerController::class)->except(['show']);
+        Route::resource('banners', \App\Http\Controllers\Admin\BannerController::class)
+            ->except(['show'])
+            ->names('admin.banners');
 
         // SITE SETTINGS
         Route::get('/settings', [\App\Http\Controllers\Admin\SiteSettingController::class, 'index'])

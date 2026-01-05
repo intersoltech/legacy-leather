@@ -39,7 +39,7 @@
       <div>
         <label>Current Image</label>
         <img class="thumb" style="width:100%;height:140px;border-radius:16px"
-             src="{{ $product->image ? asset($product->image) : asset('assets/img/placeholder.jpg') }}" alt="">
+             src="{{ image_url($product->image, 'assets/img/placeholder.jpg') }}" alt="">
       </div>
     </div>
 

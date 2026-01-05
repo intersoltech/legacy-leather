@@ -22,7 +22,7 @@
   @forelse($banners as $banner)
     <div class="card">
       <div style="margin-bottom:12px;">
-        <img src="{{ asset('storage/' . $banner->image) }}" alt="{{ $banner->title }}" class="thumb" style="width:100%;height:180px;object-fit:cover;">
+        <img src="{{ image_url($banner->image) }}" alt="{{ $banner->title }}" class="thumb" style="width:100%;height:180px;object-fit:cover;">
       </div>
       <div>
         <h3 style="margin:0 0 8px;font-size:14px;">{{ $banner->title ?? 'No Title' }}</h3>
@@ -51,7 +51,7 @@
   @endforelse
 </div>
 
-@if($banners->hasPages())
+@if(method_exists($banners, 'hasPages') && $banners->hasPages())
   <div style="margin-top:16px;display:flex;justify-content:center;gap:8px;">
     @if($banners->onFirstPage())
       <span class="btn ghost" style="opacity:.5;">Previous</span>

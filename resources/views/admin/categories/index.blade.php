@@ -61,7 +61,7 @@
   </table>
 </div>
 
-@if($categories->hasPages())
+@if(method_exists($categories, 'hasPages') && $categories->hasPages())
   <div style="margin-top:16px;display:flex;justify-content:center;gap:8px;">
     @if($categories->onFirstPage())
       <span class="btn ghost" style="opacity:.5;">Previous</span>

@@ -10,12 +10,12 @@
 
 <div class="wrap">
   <aside class="sidebar">
-    <div class="brand">
-      <div class="logo">LLW</div>
-      <div>
-        <h2>Legacy Leather Works</h2>
-        <p>Admin Console</p>
-      </div>
+    <div class="brand" style="display:flex;flex-direction:column;align-items:center;gap:4px;">
+      <img class="brand-logo" src="{{ image_url($siteSettings['site_logo'] ?? null, 'assets/img/logo.png') }}"
+            alt="{{ $siteSettings['site_name'] ?? 'Legacy Leather Works' }}" style="width:44px;height:44px;border-radius:14px;">
+      <p class="brand-text">{{ $siteSettings['site_name'] ?? 'Legacy Leather Works' }}</p>
+      <p class="brand-text-small">Admin Console</p>
+      
     </div>
 
     <div class="navSec">
@@ -66,6 +66,20 @@
       <div class="navTitle">Quick</div>
       <div class="nav">
         <a href="{{ url('/') }}" target="_blank">View Website <span class="badge">Open</span></a>
+      </div>
+
+      <div class="navTitle">Account</div>
+      <div class="nav">
+        <div style="padding:8px 12px;color:var(--muted);font-size:12px;">
+          {{ auth()->user()->name }}
+        </div>
+        <form method="POST" action="{{ route('logout') }}" style="margin:0;">
+          @csrf
+          <button type="submit" style="width:100%;text-align:left;padding:8px 12px;border:none;background:none;color:inherit;cursor:pointer;font-size:13px;display:flex;align-items:center;gap:8px;border-radius:8px;transition:background .2s;" onmouseover="this.style.background='rgba(0,0,0,.05)'" onmouseout="this.style.background='none'">
+            <i class="bi bi-box-arrow-right"></i>
+            <span>Logout</span>
+          </button>
+        </form>
       </div>
     </div>
   </aside>

@@ -58,7 +58,7 @@
 <header>
   <div class="container top">
     <a class="brand" href="{{ url('/shop') }}">
-      <img src="{{ asset($product->image) }}" alt="{{ $product->name }}">
+      <img src="{{ image_url($product->image) }}" alt="{{ $product->name }}">
 <h1>{{ $product->name }}</h1>
 <p>{{ $product->description }}</p>
 <p>${{ number_format($product->price,2) }}</p>

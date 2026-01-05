@@ -4,7 +4,7 @@
 
       <div class="fCol">
         <a class="fBrand" href="{{ url('/') }}">
-          <img src="{{ asset($siteSettings['site_logo'] ?? 'assets/img/logo.png') }}" alt="{{ $siteSettings['site_name'] ?? 'Legacy Leather Works' }}">
+          <img src="{{ image_url($siteSettings['site_logo'] ?? null, 'assets/img/logo.png') }}" alt="{{ $siteSettings['site_name'] ?? 'Legacy Leather Works' }}">
           <span>{{ $siteSettings['site_name'] ?? 'Legacy Leather Works' }}</span>
         </a>
         <p class="fDesc">

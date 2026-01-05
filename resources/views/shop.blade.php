@@ -13,7 +13,7 @@
       <div class="swiper-wrapper">
         @foreach($banners ?? [] as $banner)
         <div class="swiper-slide">
-            <img src="{{ asset($banner->image) }}" alt="{{ $banner->title ?? 'Banner' }}">
+            <img src="{{ image_url($banner->image) }}" alt="{{ $banner->title ?? 'Banner' }}">
           <div class="bannerOverlay"></div>
             @if($banner->title || $banner->kicker || $banner->subtitle)
           <div class="bannerText">
@@ -81,10 +81,10 @@
 <div class="productsGrid" id="grid">
   @foreach($products as $product)
   <div class="luxCard productCard" data-cat="{{ $product->category }}" data-name="{{ $product->name }}" data-price="{{ $product->price }}"
-    data-img="{{ asset($product->image) }}"
+    data-img="{{ image_url($product->image) }}"
     data-desc="{{ $product->description }}"
     data-href="{{ route('product.show', $product->id) }}">
-    <div class="luxMedia"><img src="{{ asset($product->image) }}" alt="{{ $product->name }}"></div>
+    <div class="luxMedia"><img src="{{ image_url($product->image) }}" alt="{{ $product->name }}"></div>
     <div class="luxBody">
       <h3 class="luxTitle">{{ $product->name }}</h3>
       <p class="luxSub">{{ $product->description }}</p>
@@ -97,7 +97,7 @@
           <button class="luxBtn primary addToCartBtn" type="button" 
                   data-name="{{ $product->name }}"
                   data-price="{{ $product->price }}"
-                  data-img="{{ $product->image }}">
+                  data-img="{{ image_url($product->image) }}">
             <i class="bi bi-cart-plus"></i> Add
           </button>
         </div>

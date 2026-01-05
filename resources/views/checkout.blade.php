@@ -212,18 +212,13 @@
           @foreach($items as $it)
             @php
               $img = $it->img ?? null;
-              // allow assets/img/... or full url
-              $imgUrl = $img
-                  ? (str_starts_with($img, 'http') || str_starts_with($img, '/') ? $img : asset($img))
-                  : asset('assets/img/placeholder.jpg');
-
               $name = $it->name ?? 'Product';
               $price = (float)($it->price ?? 0);
               $qty = (int)($it->qty ?? 1);
             @endphp
 
             <div class="summaryItem">
-              <img src="{{ $imgUrl }}" alt="{{ $name }}" onerror="this.src='{{ asset('assets/img/placeholder.jpg') }}'">
+              <img src="{{ image_url($img, 'assets/img/placeholder.jpg') }}" alt="{{ $name }}" onerror="this.src='{{ asset('assets/img/placeholder.jpg') }}'">
               <div>
                 <div class="sumTop">
                   <h4 class="sumName">{{ $name }}</h4>

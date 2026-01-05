@@ -38,7 +38,7 @@
             @endphp
 
             <div class="cartRowItem" data-cart-item="{{ $item->id }}">
-              <img src="{{ Str::startsWith($img, ['http://','https://','/']) ? $img : asset($img) }}"
+              <img src="{{ image_url($img, 'assets/img/placeholder.jpg') }}"
                    alt="{{ $name }}"
                    onerror="this.src='{{ asset('assets/img/placeholder.jpg') }}'">
 

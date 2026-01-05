@@ -78,7 +78,7 @@
           @endforeach
         </div>
 
-        @if($orders->hasPages())
+        @if(method_exists($orders, 'hasPages') && $orders->hasPages())
           <div style="margin-top:20px;display:flex;justify-content:center;gap:8px;">
             @if($orders->onFirstPage())
               <span style="padding:10px 14px;border-radius:12px;background:#f5f5f5;color:#999;font-size:12px;">Previous</span>

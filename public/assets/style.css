@@ -138,8 +138,8 @@ header{
   background:#fff;
   border:1px solid rgba(0,0,0,.12);
   border-radius:999px;
-  padding:10px 12px;
-  min-width:min(460px,48vw);
+  padding:0px 12px;
+  min-width:min(200px,28vw);
 }
 .search i{color:#666;font-size:14px;}
 .search input{

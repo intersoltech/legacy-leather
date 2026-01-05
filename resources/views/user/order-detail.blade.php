@@ -25,7 +25,7 @@
       <div style="padding:18px;">
         @foreach($order->items as $item)
           <div style="display:grid;grid-template-columns:80px 1fr;gap:14px;padding:14px;border:1px solid rgba(0,0,0,.08);border-radius:14px;margin-bottom:12px;background:#fff;">
-            <img src="{{ $item->product_image ? (str_starts_with($item->product_image, 'http') ? $item->product_image : asset($item->product_image)) : asset('assets/img/placeholder.jpg') }}" 
+            <img src="{{ image_url($item->product_image, 'assets/img/placeholder.jpg') }}" 
                  alt="{{ $item->product_name }}" 
                  style="width:80px;height:80px;border-radius:12px;object-fit:cover;border:1px solid rgba(0,0,0,.08);">
             <div>

@@ -80,7 +80,7 @@
   </table>
 </div>
 
-@if($users->hasPages())
+@if(method_exists($users, 'hasPages') && $users->hasPages())
   <div style="margin-top:16px;display:flex;justify-content:center;gap:8px;">
     @if($users->onFirstPage())
       <span class="btn ghost" style="opacity:.5;">Previous</span>

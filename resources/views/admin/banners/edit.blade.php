@@ -15,7 +15,7 @@
 <div class="card" style="margin-top:16px;max-width:700px;">
   @if($banner->image)
     <div style="margin-bottom:16px;">
-      <img src="{{ asset('storage/' . $banner->image) }}" alt="Current" style="width:100%;max-height:300px;object-fit:cover;border-radius:12px;border:1px solid var(--line);">
+      <img src="{{ image_url($banner->image) }}" alt="Current" style="width:100%;max-height:300px;object-fit:cover;border-radius:12px;border:1px solid var(--line);">
     </div>
   @endif
 
