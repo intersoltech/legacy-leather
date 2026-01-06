@@ -12,7 +12,9 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('social_links', function (Blueprint $table) {
-            $table->string('icon_class')->nullable()->after('icon_text');
+            if (!Schema::hasColumn('social_links', 'icon_class')) {
+                $table->string('icon_class')->nullable()->after('icon_text');
+            }
         });
     }
 
@@ -22,7 +24,9 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('social_links', function (Blueprint $table) {
-            $table->dropColumn('icon_class');
+            if (Schema::hasColumn('social_links', 'icon_class')) {
+                $table->dropColumn('icon_class');
+            }
         });
     }
 };

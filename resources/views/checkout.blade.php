@@ -169,9 +169,9 @@
             </div>
             <div>
               <div class="labelX">Payment Method</div>
-              <select class="selectX" name="payment_method" required>
+              <select class="selectX" name="payment_method" required id="payment_method">
                 <option value="cod"  {{ old('payment_method','cod')==='cod' ? 'selected' : '' }}>Cash on Delivery</option>
-                <option value="card" {{ old('payment_method')==='card' ? 'selected' : '' }}>Card</option>
+                <option value="stripe" {{ old('payment_method')==='stripe' ? 'selected' : '' }}>Credit/Debit Card (Stripe)</option>
                 <option value="bank" {{ old('payment_method')==='bank' ? 'selected' : '' }}>Bank Transfer</option>
               </select>
             </div>

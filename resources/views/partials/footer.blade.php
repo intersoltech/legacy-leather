@@ -26,7 +26,7 @@
       <div class="fCol">
         <h4 class="fTitle">Shop</h4>
         @foreach($categories->whereNotIn('slug', ['all']) as $cat)
-          <a class="fLink" href="{{ url('/shop') }}?cat={{ urlencode($cat->slug) }}">{{ $cat->display_name ?? $cat->name }}</a>
+          <a class="fLink" href="{{ url('/shop') }}?cat={{ urlencode($cat->name) }}">{{ $cat->display_name ?? $cat->name }}</a>
         @endforeach
       </div>
 

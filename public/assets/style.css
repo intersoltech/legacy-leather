@@ -1048,7 +1048,7 @@ header{
 @media(max-width:980px){
   .luxGrid{ grid-template-columns:1fr; }
   .luxTile{ min-height:460px; }
-  .luxTitle{ font-size:36px; }
+  .luxTitle{ font-size:18px; }
 }
 
 /* Cart Drawer */

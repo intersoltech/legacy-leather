@@ -67,6 +67,16 @@ Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
 Route::post('/checkout/place', [CheckoutController::class, 'place'])
     ->name('checkout.place');
 
+// Stripe Checkout routes
+Route::get('/checkout/stripe/success', [CheckoutController::class, 'stripeSuccess'])
+    ->name('checkout.stripe.success');
+Route::get('/checkout/stripe/cancel', [CheckoutController::class, 'stripeCancel'])
+    ->name('checkout.stripe.cancel');
+
+// Stripe Webhook (must be outside CSRF protection)
+Route::post('/webhook/stripe', [\App\Http\Controllers\StripeWebhookController::class, 'handleWebhook'])
+    ->name('webhook.stripe');
+
 Route::get('/thank-you', [CheckoutController::class, 'thankYou'])
     ->name('thankyou');
 
