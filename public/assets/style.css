@@ -128,17 +128,17 @@ header{
 .actions{
   justify-self:end;
   display:flex;
-  gap:12px;
+  gap:6px;
   align-items:center;
 }
 .search{
   display:flex;
   align-items:center;
-  gap:10px;
+  gap:6px;
   background:#fff;
   border:1px solid rgba(0,0,0,.12);
   border-radius:999px;
-  padding:0px 12px;
+  padding:0px 6px;
   min-width:min(200px,28vw);
 }
 .search i{color:#666;font-size:14px;}
@@ -1454,7 +1454,7 @@ input, textarea{
   width:100%;
   border:1px solid rgba(0,0,0,.12);
   border-radius:16px;
-  padding:12px 12px;
+  padding:8px 8px;
   outline:none;
   background:#fff;
   font-size:14px;

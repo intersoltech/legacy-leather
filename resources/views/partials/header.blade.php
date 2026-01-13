@@ -24,27 +24,38 @@
             <div class="searchDrop" id="searchDrop"></div>
         </div>
         @auth
-            <div class="auth-actions">
-                @if (auth()->user()->is_admin)
-                    <a class="cartBtnTop" href="{{ route('admin.dashboard') }}"
-                        style="display:inline-flex;align-items:center;gap:6px;">
-                        <i class="bi bi-shield-check"></i>
-                        <span class="btn-text">Admin</span>
-                    </a>
-                @else
-                    <a class="cartBtnTop" href="{{ route('dashboard') }}"
-                        style="display:inline-flex;align-items:center;gap:6px;">
-                        <i class="bi bi-person"></i>
-                        <span class="btn-text">{{ auth()->user()->name }}</span>
-                    </a>
-                @endif
-                <form method="POST" action="{{ route('logout') }}" style="display:inline;margin:0;">
-                    @csrf
-                    <button type="submit" class="cartBtnTop" style="display:inline-flex;align-items:center;gap:6px;">
-                        <i class="bi bi-box-arrow-right"></i>
-                        <span class="btn-text">Logout</span>
-                    </button>
-                </form>
+            <div class="dropdown">
+                <button class="cartBtnTop dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false" style="display:inline-flex;align-items:center;gap:6px;">
+                    <i class="bi bi-person"></i>
+                    <span class="btn-text">{{ auth()->user()->name }}</span>
+                </button>
+                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
+                    @if (auth()->user()->is_admin)
+                        <li>
+                            <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
+                                <i class="bi bi-shield-check"></i>
+                                <span>Admin Dashboard</span>
+                            </a>
+                        </li>
+                    @else
+                        <li>
+                            <a class="dropdown-item" href="{{ route('dashboard') }}">
+                                <i class="bi bi-speedometer2"></i>
+                                <span>Dashboard</span>
+                            </a>
+                        </li>
+                    @endif
+                    <li><hr class="dropdown-divider"></li>
+                    <li>
+                        <form method="POST" action="{{ route('logout') }}" style="margin:0;">
+                            @csrf
+                            <button type="submit" class="dropdown-item">
+                                <i class="bi bi-box-arrow-right"></i>
+                                <span>Logout</span>
+                            </button>
+                        </form>
+                    </li>
+                </ul>
             </div>
         @else
             <a class="cartBtnTop" href="{{ route('login') }}" style="display:inline-flex;align-items:center;gap:6px;">
@@ -81,6 +92,11 @@
 }
 
 /* Responsive Styles */
+@media (max-width: 1200px) {
+    .search {
+        display: none;
+    }
+}
 @media (max-width: 980px) {
     .search {
         display: none;
@@ -147,6 +163,50 @@
     .auth-actions {
         display: flex;
         gap: 6px;
+    }
+    
+    /* Bootstrap dropdown customization */
+    .dropdown .dropdown-toggle::after {
+        margin-left: 4px;
+        font-size: 10px;
+    }
+    
+    .dropdown-menu {
+        border: 1px solid rgba(0,0,0,.12);
+        border-radius: 8px;
+        box-shadow: 0 4px 12px rgba(0,0,0,.15);
+        min-width: 180px;
+        padding: 8px 0;
+    }
+    
+    .dropdown-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px 16px;
+        font-size: 14px;
+    }
+    
+    .dropdown-item i {
+        width: 18px;
+        font-size: 16px;
+        color: #666;
+    }
+    
+    .dropdown-item:hover i,
+    .dropdown-item:focus i {
+        color: inherit;
+    }
+    
+    .dropdown-item button {
+        border: none;
+        background: none;
+        width: 100%;
+        text-align: left;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        gap: 10px;
     }
 }
 
@@ -236,5 +296,6 @@ document.addEventListener('DOMContentLoaded', function() {
             });
         });
     }
+    
 });
 </script>

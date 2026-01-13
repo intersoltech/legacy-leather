@@ -53,9 +53,9 @@
       <div class="leftControls">
         <div class="chipRow" id="catRow">
           @foreach($categories as $cat)
-            <a class="chip {{ ($selectedCategory ?? 'all') === $cat->slug ? 'active' : '' }}" 
-               href="{{ url('/shop') }}{{ $cat->slug !== 'all' ? '?cat=' . urlencode($cat->slug) : '' }}" 
-               data-cat="{{ $cat->slug }}">
+            <a class="chip {{ ($selectedCategory ?? 'all') === $cat->name ? 'active' : '' }}" 
+               href="{{ url('/shop') }}{{ $cat->name !== 'all' ? '?cat=' . urlencode($cat->name) : '' }}" 
+               data-cat="{{ $cat->name }}">
               {{ $cat->display_name ?? $cat->name }}
             </a>
           @endforeach
