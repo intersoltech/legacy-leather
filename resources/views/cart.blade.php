@@ -98,7 +98,11 @@
           <strong data-cart-total>${{ number_format($subtotal, 0) }}</strong>
         </div>
 
-        <button class="sumBtn" type="button" onclick="window.location.href='{{ route('checkout') }}'">Checkout</button>
+        @auth
+          <button class="sumBtn" type="button" onclick="window.location.href='{{ route('checkout') }}'">Checkout</button>
+        @else
+          <a href="{{ route('login') }}" class="sumBtn" style="text-decoration:none;display:block;text-align:center;">Login to Checkout</a>
+        @endauth
         <button class="sumGhost" type="button" onclick="window.location.href='{{ url('/shop') }}'">Continue Shopping</button>
       </div>
     </div>

@@ -77,7 +77,7 @@
     <div style="margin-top:12px;">
       @forelse($topProducts as $product)
         <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--line);">
-          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $product->name }}</span>
+          <span style="flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">{{ $product->product_name }}</span>
           <span class="status">{{ $product->total_sold }} sold</span>
         </div>
       @empty

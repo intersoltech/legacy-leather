@@ -1,94 +1,52 @@
-{{-- resources/views/checkout.blade.php --}}
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Checkout — Legacy Leather Works</title>
+@extends('layouts.master')
 
-  <link rel="stylesheet" href="{{ asset('assets/style.css') }}" />
-  <style>{!! @file_get_contents(public_path('assets/inline-home.css')) !!}</style>
+@section('title', 'Checkout — Legacy Leather Works')
 
-  <style>
-    .checkoutWrap{max-width:1180px;margin:22px auto;padding:0 18px}
-    .checkoutGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;align-items:start}
-    @media(max-width:980px){.checkoutGrid{grid-template-columns:1fr}}
+@push('styles')
+<style>
+  .checkoutWrap{max-width:1180px;margin:22px auto;padding:0 18px}
+  .checkoutGrid{display:grid;grid-template-columns:1.2fr .8fr;gap:22px;align-items:start}
+  @media(max-width:980px){.checkoutGrid{grid-template-columns:1fr}}
 
-    .boxCard{border:1px solid var(--line);border-radius:18px;background:#fff;overflow:hidden;box-shadow:0 10px 26px rgba(0,0,0,.06);}
-    .boxHead{padding:16px 18px;border-bottom:1px solid rgba(0,0,0,.08);background:linear-gradient(180deg,#fff 0%, #fbfaf8 100%);display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}
-    .boxHead h2{margin:0;font-family: ui-serif, Georgia, "Times New Roman", serif;letter-spacing:.10em;text-transform:uppercase;font-size:16px;color:#3b2a1f;}
-    .boxBody{padding:18px}
+  .boxCard{border:1px solid var(--line);border-radius:18px;background:#fff;overflow:hidden;box-shadow:0 10px 26px rgba(0,0,0,.06);}
+  .boxHead{padding:16px 18px;border-bottom:1px solid rgba(0,0,0,.08);background:linear-gradient(180deg,#fff 0%, #fbfaf8 100%);display:flex;justify-content:space-between;align-items:flex-end;gap:12px;}
+  .boxHead h2{margin:0;font-family: ui-serif, Georgia, "Times New Roman", serif;letter-spacing:.10em;text-transform:uppercase;font-size:16px;color:#3b2a1f;}
+  .boxBody{padding:18px}
 
-    .fieldRow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-    @media(max-width:650px){.fieldRow{grid-template-columns:1fr}}
-    .labelX{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 8px 0;}
-    .inputX,.selectX,.textareaX{width:100%;border:1px solid rgba(107,63,42,.22);border-radius:14px;padding:12px;outline:none;font-size:13px;background:#fff;color:#111;}
-    .textareaX{min-height:92px;resize:vertical}
+  .fieldRow{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:650px){.fieldRow{grid-template-columns:1fr}}
+  .labelX{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 8px 0;}
+  .inputX,.selectX,.textareaX{width:100%;border:1px solid rgba(107,63,42,.22);border-radius:14px;padding:12px;outline:none;font-size:13px;background:#fff;color:#111;}
+  .textareaX{min-height:92px;resize:vertical}
 
-    .summaryItem{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:12px;border:1px solid rgba(0,0,0,.08);border-radius:16px;background:#fff;margin-bottom:12px;}
-    .summaryItem img{width:64px;height:64px;border-radius:14px;object-fit:cover;background:#f3efe9;border:1px solid rgba(0,0,0,.06);}
-    .sumTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
-    .sumName{margin:0;font-size:13px;font-weight:600;font-family: ui-serif, Georgia, "Times New Roman", serif;line-height:1.25;color:#111;}
-    .sumPrice{font-weight:800;color:var(--brown);font-size:13px;white-space:nowrap}
-    .sumMeta{margin-top:6px;color:#666;font-size:12px;line-height:1.6}
-    .sumQty{margin-top:8px;display:inline-flex;gap:8px;align-items:center}
-    .qtyPill{font-size:11px;padding:7px 10px;border-radius:999px;border:1px solid rgba(0,0,0,.10);background:var(--soft);letter-spacing:.10em;text-transform:uppercase;color:#3b2a1f;}
+  .summaryItem{display:grid;grid-template-columns:64px 1fr;gap:12px;padding:12px;border:1px solid rgba(0,0,0,.08);border-radius:16px;background:#fff;margin-bottom:12px;}
+  .summaryItem img{width:64px;height:64px;border-radius:14px;object-fit:cover;background:#f3efe9;border:1px solid rgba(0,0,0,.06);}
+  .sumTop{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}
+  .sumName{margin:0;font-size:13px;font-weight:600;font-family: ui-serif, Georgia, "Times New Roman", serif;line-height:1.25;color:#111;}
+  .sumPrice{font-weight:800;color:var(--brown);font-size:13px;white-space:nowrap}
+  .sumMeta{margin-top:6px;color:#666;font-size:12px;line-height:1.6}
+  .sumQty{margin-top:8px;display:inline-flex;gap:8px;align-items:center}
+  .qtyPill{font-size:11px;padding:7px 10px;border-radius:999px;border:1px solid rgba(0,0,0,.10);background:var(--soft);letter-spacing:.10em;text-transform:uppercase;color:#3b2a1f;}
 
-    .totalBox{margin-top:14px;border-top:1px solid rgba(0,0,0,.08);padding-top:14px;}
-    .rowT{display:flex;justify-content:space-between;align-items:center;margin:10px 0;color:#444;font-size:13px}
-    .rowT strong{font-size:16px;color:var(--brown)}
-    .payNote{margin-top:10px;font-size:12px;color:#666;line-height:1.6;}
+  .totalBox{margin-top:14px;border-top:1px solid rgba(0,0,0,.08);padding-top:14px;}
+  .rowT{display:flex;justify-content:space-between;align-items:center;margin:10px 0;color:#444;font-size:13px}
+  .rowT strong{font-size:16px;color:var(--brown)}
+  .payNote{margin-top:10px;font-size:12px;color:#666;line-height:1.6;}
 
-    .btnPrimaryX{width:100%;border:none;border-radius:14px;padding:14px;background:#6B3F2A;color:#fff;font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;margin-top:12px;}
-    .btnPrimaryX:hover{filter:brightness(.95)}
-    .btnGhostX{width:100%;margin-top:10px;border-radius:14px;padding:12px;border:1px solid rgba(0,0,0,.15);background:#fff;font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;}
-    .btnGhostX:hover{background:#f7f2ee}
+  .btnPrimaryX{width:100%;border:none;border-radius:14px;padding:14px;background:#6B3F2A;color:#fff;font-size:12px;letter-spacing:.14em;text-transform:uppercase;cursor:pointer;margin-top:12px;}
+  .btnPrimaryX:hover{filter:brightness(.95)}
+  .btnGhostX{width:100%;margin-top:10px;border-radius:14px;padding:12px;border:1px solid rgba(0,0,0,.15);background:#fff;font-size:12px;letter-spacing:.12em;text-transform:uppercase;cursor:pointer;}
+  .btnGhostX:hover{background:#f7f2ee}
 
-    .emptyState{padding:18px;color:#666;line-height:1.8;font-size:13px;border:1px dashed rgba(0,0,0,.18);border-radius:16px;background:linear-gradient(180deg,#ffffff 0%, #fbfaf8 100%);}
-  </style>
-</head>
+  .emptyState{padding:18px;color:#666;line-height:1.8;font-size:13px;border:1px dashed rgba(0,0,0,.18);border-radius:16px;background:linear-gradient(180deg,#ffffff 0%, #fbfaf8 100%);}
 
-<body>
+  .sectionHead{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;}
+  .viewAll{font-size:12px;color:var(--brown);text-decoration:none;letter-spacing:.10em;text-transform:uppercase;}
+  .viewAll:hover{text-decoration:underline;}
+</style>
+@endpush
 
-<header>
-  <div class="topbar">
-    <div class="container topbar-inner">
-      <div class="topbar-marquee">
-        <div class="marquee-track">
-          <span>Worldwide Shipping</span><span>•</span><span>Easy Returns</span><span>•</span>
-          <span>Premium Leather Craftsmanship</span><span>•</span><span>Legacy Leather Works</span>
-          <span>Worldwide Shipping</span><span>•</span><span>Easy Returns</span><span>•</span>
-          <span>Premium Leather Craftsmanship</span><span>•</span><span>Legacy Leather Works</span>
-        </div>
-      </div>
-      <div>
-        <select class="currency">
-          <option>AED</option><option selected>USD</option><option>PKR</option><option>GBP</option>
-        </select>
-      </div>
-    </div>
-  </div>
-
-  <div class="container nav">
-    <nav class="navlinks">
-      <a href="{{ url('/shop') }}">SHOP</a>
-      <a href="{{ url('/about') }}">ABOUT</a>
-      <a href="{{ url('/policies') }}">SHIPPING</a>
-      <a href="{{ url('/contact') }}">CONTACT</a>
-    </nav>
-
-    <a class="brand" href="{{ url('/') }}">
-      <img class="brand-logo" src="{{ asset('assets/img/logo.png') }}" alt="Legacy Leather Works">
-      <span class="brand-text">Legacy Leather Works</span>
-    </a>
-
-    <div class="actions">
-      <div class="search"><input placeholder="Search (Enter)" /></div>
-      <a class="cart" href="{{ url('/cart') }}">CART (<span data-cart-count>0</span>)</a>
-    </div>
-  </div>
-</header>
-
+@section('content')
 <div class="checkoutWrap">
   <div class="sectionHead" style="margin:14px 0 18px;">
     <h2 style="margin:0;font-family: ui-serif, Georgia, 'Times New Roman', serif; letter-spacing:.12em; text-transform:uppercase;">
@@ -96,6 +54,15 @@
     </h2>
     <a class="viewAll" href="{{ url('/cart') }}">Back to Cart</a>
   </div>
+
+  @if(session('error'))
+    <div class="boxCard" style="margin-bottom:14px;">
+      <div class="boxBody" style="padding:14px 18px;color:#8b2c2c;">
+        <b style="letter-spacing:.10em;text-transform:uppercase;">Error</b>
+        <p style="margin:10px 0 0;">{{ session('error') }}</p>
+      </div>
+    </div>
+  @endif
 
   @if($errors->any())
     <div class="boxCard" style="margin-bottom:14px;">
@@ -120,13 +87,13 @@
       </div>
 
       <div class="boxBody">
-        <form method="POST" action="{{ route('checkout.place') }}">
+        <form method="POST" action="{{ route('checkout.place') }}" id="checkoutForm">
           @csrf
 
           <div class="fieldRow">
             <div>
               <div class="labelX">First Name</div>
-              <input class="inputX" name="first_name" required placeholder="First name" value="{{ old('first_name') }}" />
+              <input class="inputX" name="first_name" required placeholder="First name" value="{{ old('first_name', auth()->user()->name ?? '') }}" />
             </div>
             <div>
               <div class="labelX">Last Name</div>
@@ -137,7 +104,7 @@
           <div class="fieldRow" style="margin-top:12px;">
             <div>
               <div class="labelX">Email</div>
-              <input class="inputX" name="email" type="email" required placeholder="email@example.com" value="{{ old('email') }}" />
+              <input class="inputX" name="email" type="email" required placeholder="email@example.com" value="{{ old('email', auth()->user()->email ?? '') }}" />
             </div>
             <div>
               <div class="labelX">Phone</div>
@@ -161,11 +128,10 @@
             </div>
           </div>
 
-          {{-- ✅ FIXED NAMES: postal_code + payment_method --}}
           <div class="fieldRow" style="margin-top:12px;">
             <div>
               <div class="labelX">Postal Code</div>
-              <input class="inputX" name="postal_code" required placeholder="Postal code" value="{{ old('postal_code') }}" />
+              <input class="inputX" name="postal_code" placeholder="Postal code" value="{{ old('postal_code') }}" />
             </div>
             <div>
               <div class="labelX">Payment Method</div>
@@ -182,7 +148,7 @@
             <textarea class="textareaX" name="notes" placeholder="Any delivery notes...">{{ old('notes') }}</textarea>
           </div>
 
-          <button class="btnPrimaryX" type="submit">Place Order</button>
+          <button class="btnPrimaryX" type="submit" id="placeOrderBtn">Place Order</button>
           <button class="btnGhostX" type="button" onclick="window.location.href='{{ url('/shop') }}'">Continue Shopping</button>
 
           <div class="payNote">
@@ -246,28 +212,34 @@
 
   </div>
 </div>
+@endsection
 
-{{-- Keep your real footer here (same as site) --}}
-<footer class="llwFooter">
-  <div class="llwFooterBottom">
-    <div class="llwBottomInner">
-      <div>© <span id="yrFooter"></span> Legacy Leather Works. All rights reserved.</div>
-    </div>
-  </div>
-</footer>
-
+@push('scripts')
 <script>
-  document.getElementById("yrFooter").textContent = new Date().getFullYear();
-  
-  // Update cart count
-  document.addEventListener("DOMContentLoaded", async () => {
+  // Handle Stripe payment method selection
+  document.getElementById('payment_method')?.addEventListener('change', function() {
+    const form = document.getElementById('checkoutForm');
+    const btn = document.getElementById('placeOrderBtn');
+    
+    if (this.value === 'stripe') {
+      // Form will be intercepted by JavaScript to redirect to Stripe
+      form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        // The form submission will be handled by the existing Stripe redirect logic
+        // For now, just submit normally - the backend will handle Stripe redirect
+      });
+    }
+  });
+
+  // Update cart count on page load
+  document.addEventListener('DOMContentLoaded', async () => {
     try{
       const r = await fetch("{{ route('cart.count') }}", { headers: { "Accept":"application/json" }});
       const j = await r.json();
       document.querySelectorAll("[data-cart-count]").forEach(el => el.textContent = j.count ?? 0);
-    }catch(e){}
+    }catch(e){
+      console.error('Failed to update cart count:', e);
+    }
   });
 </script>
-
-</body>
-</html>
+@endpush

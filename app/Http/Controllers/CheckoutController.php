@@ -20,17 +20,31 @@ class CheckoutController extends Controller
     }
     public function index(Request $request)
     {
+        // Ensure user is authenticated
+        if (!auth()->check()) {
+            return redirect()->route('login')->with('error', 'Please login to proceed with checkout.');
+        }
+
         $token = $request->cookie('cart_token');
         $cart  = $token ? Cart::with('items')->where('token', $token)->first() : null;
 
         $items = $cart?->items ?? collect();
         $total = $items->sum(fn($i) => (int)$i->price * (int)$i->qty);
 
+        if ($items->isEmpty()) {
+            return redirect()->route('cart')->with('error', 'Your cart is empty. Add items before checkout.');
+        }
+
         return view('checkout', compact('items', 'total'));
     }
 
     public function place(Request $request)
     {
+        // Ensure user is authenticated
+        if (!auth()->check()) {
+            return redirect()->route('login')->with('error', 'Please login to place an order.');
+        }
+
         $token = $request->cookie('cart_token');
         $cart  = $token ? Cart::with('items')->where('token', $token)->first() : null;
 
@@ -57,6 +71,9 @@ class CheckoutController extends Controller
         // Generate order reference
         $orderRef = 'LLW-' . strtoupper(substr(bin2hex(random_bytes(6)), 0, 12));
         
+        // Generate order number (sequential or based on timestamp)
+        $orderNumber = $this->generateOrderNumber();
+        
         // Link to user if logged in
         $userId = auth()->id();
         $userEmail = auth()->user()?->email ?? $data['email'];
@@ -70,6 +87,7 @@ class CheckoutController extends Controller
         $order = Order::create([
             'user_id' => $userId,
             'order_ref' => $orderRef,
+            'order_number' => $orderNumber,
             'first_name' => $data['first_name'],
             'last_name'  => $data['last_name'],
             'email'      => $userEmail,
@@ -120,10 +138,14 @@ class CheckoutController extends Controller
     protected function handleStripeCheckout($cart, $data, $orderRef, $total, $userId, $userEmail)
     {
         try {
+            // Generate order number
+            $orderNumber = $this->generateOrderNumber();
+            
             // Create order first (pending status)
             $order = Order::create([
                 'user_id' => $userId,
                 'order_ref' => $orderRef,
+                'order_number' => $orderNumber,
                 'first_name' => $data['first_name'],
                 'last_name'  => $data['last_name'],
                 'email'      => $userEmail,
@@ -282,5 +304,25 @@ class CheckoutController extends Controller
         $order = $orderRef ? Order::where('order_ref', $orderRef)->with('items')->first() : null;
 
         return view('thank-you', compact('order'));
+    }
+
+    /**
+     * Generate a unique order number
+     * Format: ORD-YYYYMMDD-XXXXX (e.g., ORD-20260112-12345)
+     */
+    protected function generateOrderNumber(): string
+    {
+        $date = now()->format('Ymd');
+        $random = strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
+        
+        $orderNumber = "ORD-{$date}-{$random}";
+        
+        // Ensure uniqueness
+        while (Order::where('order_number', $orderNumber)->exists()) {
+            $random = strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
+            $orderNumber = "ORD-{$date}-{$random}";
+        }
+        
+        return $orderNumber;
     }
 }
