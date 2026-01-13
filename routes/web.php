@@ -204,5 +204,3 @@ Route::prefix('admin')
         Route::post('/users/{user}/admin-status', [\App\Http\Controllers\Admin\UserController::class, 'updateAdminStatus'])
             ->name('admin.users.update-status');
     });
-Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
-Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');

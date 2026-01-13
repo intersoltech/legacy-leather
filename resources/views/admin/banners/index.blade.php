@@ -2,69 +2,83 @@
 @section('title','Banners')
 
 @section('content')
-<div class="topbar">
-  <div>
-    <h1 class="h1">Banners</h1>
-    <p class="sub">Manage homepage and shop banners</p>
-  </div>
-  <div class="actions">
-    <a href="{{ route('admin.banners.create') }}" class="btn">+ New Banner</a>
-  </div>
-</div>
+<div class="pagetitle">
+  <h1>Banners</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
+      <li class="breadcrumb-item active">Banners</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
 
-@if(session('success'))
-  <div class="card" style="background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);margin-top:16px;">
-    <div style="color:#22c55e;">{{ session('success') }}</div>
-  </div>
-@endif
-
-<div class="grid" style="grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); margin-top:16px;gap:16px;">
-  @forelse($banners as $banner)
-    <div class="card">
-      <div style="margin-bottom:12px;">
-        <img src="{{ image_url($banner->image) }}" alt="{{ $banner->title }}" class="thumb" style="width:100%;height:180px;object-fit:cover;">
-      </div>
-      <div>
-        <h3 style="margin:0 0 8px;font-size:14px;">{{ $banner->title ?? 'No Title' }}</h3>
-        <div style="font-size:12px;color:var(--muted);margin-bottom:12px;">
-          <div>Type: {{ $banner->type }}</div>
-          <div>Order: {{ $banner->order }}</div>
-          <div style="margin-top:4px;">
-            <span class="status" style="{{ $banner->is_active ? 'background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);' : 'background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);' }}">
-              {{ $banner->is_active ? 'Active' : 'Inactive' }}
-            </span>
+<section class="section">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title">Banners</h5>
+            <a href="{{ route('admin.banners.create') }}" class="btn btn-primary">
+              <i class="bi bi-plus-circle"></i> New Banner
+            </a>
           </div>
-        </div>
-        <div class="actions" style="margin:0;">
-          <a href="{{ route('admin.banners.edit', $banner) }}" class="btn ghost" style="font-size:11px;padding:6px 10px;flex:1;">Edit</a>
-          <form action="{{ route('admin.banners.destroy', $banner) }}" method="POST" style="display:inline;flex:1;" onsubmit="return confirm('Delete this banner?');">
-            @csrf @method('DELETE')
-            <button type="submit" class="btn ghost" style="font-size:11px;padding:6px 10px;width:100%;color:#ef4444;">Delete</button>
-          </form>
+
+          @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              {{ session('success') }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          @endif
+
+          <div class="row">
+            @forelse($banners as $banner)
+              <div class="col-md-6 col-lg-4 mb-4">
+                <div class="card h-100">
+                  <img src="{{ image_url($banner->image) }}" alt="{{ $banner->title }}" class="card-img-top" style="height:200px;object-fit:cover;">
+                  <div class="card-body">
+                    <h6 class="card-title">{{ $banner->title ?? 'No Title' }}</h6>
+                    <p class="card-text" style="font-size:12px;color:#858585;margin-bottom:8px;">
+                      <strong>Type:</strong> {{ ucfirst($banner->type) }}<br>
+                      <strong>Order:</strong> {{ $banner->order }}
+                    </p>
+                    <span class="badge {{ $banner->is_active ? 'bg-success' : 'bg-danger' }}">
+                      {{ $banner->is_active ? 'Active' : 'Inactive' }}
+                    </span>
+                  </div>
+                  <div class="card-footer bg-transparent border-top-0">
+                    <div class="d-flex gap-2">
+                      <a href="{{ route('admin.banners.edit', $banner) }}" class="btn btn-sm btn-outline-primary flex-fill">
+                        <i class="bi bi-pencil"></i> Edit
+                      </a>
+                      <form action="{{ route('admin.banners.destroy', $banner) }}" method="POST" style="display:inline;flex:1;" onsubmit="return confirm('Delete this banner?');">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-outline-danger w-100">
+                          <i class="bi bi-trash"></i> Delete
+                        </button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            @empty
+              <div class="col-12">
+                <div class="alert alert-info text-center">
+                  No banners yet. <a href="{{ route('admin.banners.create') }}" class="alert-link">Create one</a>
+                </div>
+              </div>
+            @endforelse
+          </div>
+
+          @if(method_exists($banners, 'hasPages') && $banners->hasPages())
+            <div class="d-flex justify-content-center mt-4">
+              {{ $banners->links() }}
+            </div>
+          @endif
+
         </div>
       </div>
     </div>
-  @empty
-    <div class="card" style="grid-column:1/-1;text-align:center;padding:40px;color:var(--muted);">
-      No banners yet. <a href="{{ route('admin.banners.create') }}" style="color:var(--accent);">Create one</a>
-    </div>
-  @endforelse
-</div>
-
-@if(method_exists($banners, 'hasPages') && $banners->hasPages())
-  <div style="margin-top:16px;display:flex;justify-content:center;gap:8px;">
-    @if($banners->onFirstPage())
-      <span class="btn ghost" style="opacity:.5;">Previous</span>
-    @else
-      <a href="{{ $banners->previousPageUrl() }}" class="btn ghost">Previous</a>
-    @endif
-    <span class="btn ghost">{{ $banners->currentPage() }} / {{ $banners->lastPage() }}</span>
-    @if($banners->hasMorePages())
-      <a href="{{ $banners->nextPageUrl() }}" class="btn ghost">Next</a>
-    @else
-      <span class="btn ghost" style="opacity:.5;">Next</span>
-    @endif
   </div>
-@endif
+</section>
 @endsection
-

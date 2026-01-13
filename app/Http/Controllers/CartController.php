@@ -34,26 +34,19 @@ class CartController extends Controller
 
     public function add(Request $request)
     {
-        // dd($request->all());
         $data = $request->validate([
             'name'  => 'required|string|max:255',
-            'price' => 'required|numeric|min:0', // Changed from integer to numeric to accept floats
+            'price' => 'required|numeric|min:0',
             'img'   => 'nullable|string|max:500',
             'qty'   => 'nullable|integer|min:1',
         ]);
 
-        // dd($data);
-
         $cart = $this->getCart($request);
         $qty  = (int)($data['qty'] ?? 1);
-
-        // dd($cart->id);
 
         $item = CartItem::where('cart_id', $cart->id)
             ->where('name', $data['name'])
             ->first();
-
-            // dd($item);
 
         if ($item) {
             $item->qty += $qty;

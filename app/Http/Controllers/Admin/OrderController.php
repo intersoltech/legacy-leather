@@ -15,7 +15,8 @@ class OrderController extends Controller
     }
 
     public function show(Order $order){
-        $items = OrderItem::where('order_id', $order->id)->get();
+        $order->load('user', 'items');
+        $items = $order->items;
         return view('admin.orders.show', compact('order','items'));
     }
 

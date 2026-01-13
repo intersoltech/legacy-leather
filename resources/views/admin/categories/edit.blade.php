@@ -2,50 +2,81 @@
 @section('title','Edit Category')
 
 @section('content')
-<div class="topbar">
-  <div>
-    <h1 class="h1">Edit Category</h1>
-    <p class="sub">Update category details</p>
-  </div>
-  <div class="actions">
-    <a href="{{ route('admin.categories.index') }}" class="btn ghost">Back</a>
-  </div>
-</div>
+<div class="pagetitle">
+  <h1>Edit Category</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
+      <li class="breadcrumb-item"><a href="{{ route('admin.categories.index') }}">Categories</a></li>
+      <li class="breadcrumb-item active">Edit Category</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
 
-<div class="card" style="margin-top:16px;max-width:600px;">
-  <form action="{{ route('admin.categories.update', $category) }}" method="POST">
-    @csrf @method('PUT')
-    <div style="margin-bottom:16px;">
-      <label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Name *</label>
-      <input type="text" name="name" class="input" value="{{ old('name', $category->name) }}" required>
-      @error('name')<div style="color:#ef4444;font-size:12px;margin-top:4px;">{{ $message }}</div>@enderror
-    </div>
+<section class="section">
+  <div class="row">
+    <div class="col-lg-6">
+      <div class="card">
+        <div class="card-body">
+          <h5 class="card-title">Edit Category</h5>
 
-    <div style="margin-bottom:16px;">
-      <label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Display Name</label>
-      <input type="text" name="display_name" class="input" value="{{ old('display_name', $category->display_name) }}">
-      @error('display_name')<div style="color:#ef4444;font-size:12px;margin-top:4px;">{{ $message }}</div>@enderror
-    </div>
+          <!-- General Form Elements -->
+          <form action="{{ route('admin.categories.update', $category) }}" method="POST">
+            @csrf @method('PUT')
 
-    <div class="row2" style="margin-bottom:16px;">
-      <div>
-        <label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Order</label>
-        <input type="number" name="order" class="input" value="{{ old('order', $category->order) }}" min="0">
+            <div class="row mb-3">
+              <label for="name" class="col-sm-2 col-form-label">Name</label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control @error('name') is-invalid @enderror" name="name" id="name" value="{{ old('name', $category->name) }}" required>
+                @error('name')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <label for="display_name" class="col-sm-2 col-form-label">Display Name</label>
+              <div class="col-sm-10">
+                <input type="text" class="form-control @error('display_name') is-invalid @enderror" name="display_name" id="display_name" value="{{ old('display_name', $category->display_name) }}">
+                @error('display_name')
+                  <div class="invalid-feedback">{{ $message }}</div>
+                @enderror
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <label for="order" class="col-sm-2 col-form-label">Order</label>
+              <div class="col-sm-10">
+                <input type="number" class="form-control" name="order" id="order" value="{{ old('order', $category->order) }}" min="0">
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <label for="is_active" class="col-sm-2 col-form-label">Active</label>
+              <div class="col-sm-10">
+                <select class="form-select" name="is_active" id="is_active">
+                  <option value="1" {{ old('is_active', $category->is_active) ? 'selected' : '' }}>Yes</option>
+                  <option value="0" {{ !old('is_active', $category->is_active) ? 'selected' : '' }}>No</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="row mb-3">
+              <label class="col-sm-2 col-form-label"></label>
+              <div class="col-sm-10">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-save"></i> Update Category
+                </button>
+                <a href="{{ route('admin.categories.index') }}" class="btn btn-outline-secondary">Cancel</a>
+              </div>
+            </div>
+
+          </form><!-- End General Form Elements -->
+
+        </div>
       </div>
-      <div>
-        <label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Active</label>
-        <select name="is_active" class="input">
-          <option value="1" {{ old('is_active', $category->is_active) ? 'selected' : '' }}>Yes</option>
-          <option value="0" {{ !old('is_active', $category->is_active) ? 'selected' : '' }}>No</option>
-        </select>
-      </div>
     </div>
-
-    <div class="actions">
-      <button type="submit" class="btn">Update Category</button>
-      <a href="{{ route('admin.categories.index') }}" class="btn ghost">Cancel</a>
-    </div>
-  </form>
-</div>
+  </div>
+</section>
 @endsection
 

@@ -2,43 +2,67 @@
 @section('title','Site Settings')
 
 @section('content')
-<div class="topbar">
-  <div>
-    <h1 class="h1">Site Settings</h1>
-    <p class="sub">Manage website configuration</p>
-  </div>
-</div>
+<div class="pagetitle">
+  <h1>Site Settings</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
+      <li class="breadcrumb-item active">Settings</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
 
-@if(session('success'))
-  <div class="card" style="background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);margin-top:16px;">
-    <div style="color:#22c55e;">{{ session('success') }}</div>
-  </div>
-@endif
-
-<form action="{{ route('admin.settings.update') }}" method="POST" style="margin-top:16px;">
-  @csrf @method('PUT')
-  
-  @foreach($settings as $group => $groupSettings)
-    <div class="card" style="margin-bottom:16px;">
-      <h3 style="margin:0 0 16px;text-transform:capitalize;">{{ $group }} Settings</h3>
-      @foreach($groupSettings as $setting)
-        <div style="margin-bottom:16px;">
-          <label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">
-            {{ str_replace('_', ' ', ucwords($setting->key, '_')) }}
-          </label>
-          @if(strlen($setting->value) > 100)
-            <textarea name="{{ $setting->key }}" class="input" rows="3">{{ old($setting->key, $setting->value) }}</textarea>
-          @else
-            <input type="text" name="{{ $setting->key }}" class="input" value="{{ old($setting->key, $setting->value) }}">
-          @endif
+<section class="section">
+  <div class="row">
+    <div class="col-lg-12">
+      @if(session('success'))
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+          {{ session('success') }}
+          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
         </div>
-      @endforeach
-    </div>
-  @endforeach
+      @endif
 
-  <div class="actions">
-    <button type="submit" class="btn">Save Settings</button>
+      <form action="{{ route('admin.settings.update') }}" method="POST">
+        @csrf @method('PUT')
+        
+        @foreach($settings as $group => $groupSettings)
+          <div class="card mb-3">
+            <div class="card-body">
+              <h5 class="card-title" style="text-transform:capitalize;margin-bottom:20px;">{{ $group }} Settings</h5>
+              
+              @foreach($groupSettings as $setting)
+                <div class="row mb-3">
+                  <label for="{{ $setting->key }}" class="col-sm-2 col-form-label">
+                    {{ str_replace('_', ' ', ucwords($setting->key, '_')) }}
+                  </label>
+                  <div class="col-sm-10">
+                    @if(strlen($setting->value) > 100)
+                      <textarea class="form-control" name="{{ $setting->key }}" id="{{ $setting->key }}" rows="3">{{ old($setting->key, $setting->value) }}</textarea>
+                    @else
+                      <input type="text" class="form-control" name="{{ $setting->key }}" id="{{ $setting->key }}" value="{{ old($setting->key, $setting->value) }}">
+                    @endif
+                  </div>
+                </div>
+              @endforeach
+            </div>
+          </div>
+        @endforeach
+
+        <div class="card">
+          <div class="card-body">
+            <div class="row mb-3">
+              <label class="col-sm-2 col-form-label"></label>
+              <div class="col-sm-10">
+                <button type="submit" class="btn btn-primary">
+                  <i class="bi bi-save"></i> Save Settings
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
   </div>
-</form>
+</section>
 @endsection
 

@@ -2,136 +2,205 @@
 @section('title','Social Links')
 
 @section('content')
-<div class="topbar">
-  <div>
-    <h1 class="h1">Social Links</h1>
-    <p class="sub">Manage social media links</p>
-  </div>
-  <div class="actions">
-    <button type="button" onclick="document.getElementById('addForm').style.display='block';" class="btn">+ Add Link</button>
-  </div>
-</div>
+<div class="pagetitle">
+  <h1>Social Links</h1>
+  <nav>
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{{ route('admin.dashboard') }}">Home</a></li>
+      <li class="breadcrumb-item active">Social Links</li>
+    </ol>
+  </nav>
+</div><!-- End Page Title -->
 
-@if(session('success'))
-  <div class="card" style="background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);margin-top:16px;">
-    <div style="color:#22c55e;">{{ session('success') }}</div>
-  </div>
-@endif
+<section class="section">
+  <div class="row">
+    <div class="col-lg-12">
+      <div class="card">
+        <div class="card-body">
+          <div class="d-flex justify-content-between align-items-center mb-3">
+            <h5 class="card-title">Social Links</h5>
+            <button type="button" onclick="document.getElementById('addForm').style.display='block';" class="btn btn-primary">
+              <i class="bi bi-plus-circle"></i> Add Link
+            </button>
+          </div>
 
-{{-- Add Form --}}
-<div id="addForm" class="card" style="margin-top:16px;max-width:600px;display:none;">
-  <h3 style="margin:0 0 16px;">Add Social Link</h3>
-  <form action="{{ route('admin.social-links.store') }}" method="POST">
-    @csrf
-    <div style="margin-bottom:16px;">
-      <label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Platform *</label>
-      <input type="text" name="platform" class="input" placeholder="Instagram, Facebook, etc." required>
-    </div>
-    <div style="margin-bottom:16px;">
-      <label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">URL *</label>
-      <input type="url" name="url" class="input" placeholder="https://..." required>
-    </div>
-    <div class="row2" style="margin-bottom:16px;">
-      <div>
-        <label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Icon Class</label>
-        <input type="text" name="icon_class" class="input" placeholder="bi-instagram">
-      </div>
-      <div>
-        <label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Order</label>
-        <input type="number" name="order" class="input" value="0" min="0">
-      </div>
-    </div>
-    <div style="margin-bottom:16px;">
-      <label style="display:flex;align-items:center;gap:8px;font-size:12px;">
-        <input type="checkbox" name="is_active" value="1" checked>
-        Active
-      </label>
-    </div>
-    <div class="actions">
-      <button type="submit" class="btn">Add Link</button>
-      <button type="button" onclick="document.getElementById('addForm').style.display='none';" class="btn ghost">Cancel</button>
-    </div>
-  </form>
-</div>
+          @if(session('success'))
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+              {{ session('success') }}
+              <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+          @endif
 
-{{-- List --}}
-<div class="tableWrap" style="margin-top:16px;">
-  <table>
-    <thead>
-      <tr>
-        <th>Platform</th>
-        <th>URL</th>
-        <th>Icon Class</th>
-        <th>Order</th>
-        <th>Status</th>
-        <th>Actions</th>
-      </tr>
-    </thead>
-    <tbody>
-      @forelse($socialLinks as $link)
-        <tr>
-          <td><strong>{{ ucfirst($link->platform) }}</strong></td>
-          <td><a href="{{ $link->url }}" target="_blank" style="color:var(--accent);font-size:12px;">{{ \Illuminate\Support\Str::limit($link->url, 40) }}</a></td>
-          <td style="color:var(--muted);font-size:12px;">{{ $link->icon_class ?? '-' }}</td>
-          <td>{{ $link->order }}</td>
-          <td>
-            <span class="status" style="{{ $link->is_active ? 'background:rgba(34,197,94,.15);border-color:rgba(34,197,94,.3);' : 'background:rgba(239,68,68,.15);border-color:rgba(239,68,68,.3);' }}">
-              {{ $link->is_active ? 'Active' : 'Inactive' }}
-            </span>
-          </td>
-          <td>
-            <div class="actions" style="margin:0;">
-              <button type="button" onclick="editLink({{ $link->id }}, '{{ $link->platform }}', '{{ $link->url }}', '{{ $link->icon_class }}', {{ $link->order }}, {{ $link->is_active ? 1 : 0 }});" class="btn ghost" style="font-size:11px;padding:6px 10px;">Edit</button>
-              <form action="{{ route('admin.social-links.destroy', $link) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this link?');">
-                @csrf @method('DELETE')
-                <button type="submit" class="btn ghost" style="font-size:11px;padding:6px 10px;color:#ef4444;">Delete</button>
+          {{-- Add Form --}}
+          <div id="addForm" class="card mb-3" style="display:none;">
+            <div class="card-body">
+              <h5 class="card-title mb-3">Add Social Link</h5>
+              <form action="{{ route('admin.social-links.store') }}" method="POST">
+                @csrf
+                
+                <div class="row mb-3">
+                  <label for="platform" class="col-sm-2 col-form-label">Platform</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" name="platform" id="platform" placeholder="Instagram, Facebook, etc." required>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <label for="url" class="col-sm-2 col-form-label">URL</label>
+                  <div class="col-sm-10">
+                    <input type="url" class="form-control" name="url" id="url" placeholder="https://..." required>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <label for="icon_class" class="col-sm-2 col-form-label">Icon Class</label>
+                  <div class="col-sm-10">
+                    <input type="text" class="form-control" name="icon_class" id="icon_class" placeholder="bi-instagram">
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <label for="order" class="col-sm-2 col-form-label">Order</label>
+                  <div class="col-sm-10">
+                    <input type="number" class="form-control" name="order" id="order" value="0" min="0">
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <label class="col-sm-2 col-form-label">Active</label>
+                  <div class="col-sm-10">
+                    <div class="form-check">
+                      <input class="form-check-input" type="checkbox" name="is_active" value="1" id="is_active" checked>
+                      <label class="form-check-label" for="is_active">
+                        Active
+                      </label>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="row mb-3">
+                  <label class="col-sm-2 col-form-label"></label>
+                  <div class="col-sm-10">
+                    <button type="submit" class="btn btn-primary">
+                      <i class="bi bi-save"></i> Add Link
+                    </button>
+                    <button type="button" onclick="document.getElementById('addForm').style.display='none';" class="btn btn-outline-secondary">Cancel</button>
+                  </div>
+                </div>
               </form>
             </div>
-          </td>
-        </tr>
-      @empty
-        <tr>
-          <td colspan="6" style="text-align:center;padding:20px;color:var(--muted);">No social links yet</td>
-        </tr>
-      @endforelse
-    </tbody>
-  </table>
-</div>
+          </div>
+
+          <!-- Table with stripped rows -->
+          <table class="table datatable">
+            <thead>
+              <tr>
+                <th scope="col">Platform</th>
+                <th scope="col">URL</th>
+                <th scope="col">Icon Class</th>
+                <th scope="col">Order</th>
+                <th scope="col">Status</th>
+                <th scope="col">Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @forelse($socialLinks as $link)
+                <tr>
+                  <td><strong>{{ ucfirst($link->platform) }}</strong></td>
+                  <td><a href="{{ $link->url }}" target="_blank" style="color:#007acc;font-size:12px;">{{ \Illuminate\Support\Str::limit($link->url, 40) }}</a></td>
+                  <td style="color:#858585;font-size:12px;">{{ $link->icon_class ?? '-' }}</td>
+                  <td>{{ $link->order }}</td>
+                  <td>
+                    <span class="badge {{ $link->is_active ? 'bg-success' : 'bg-danger' }}">
+                      {{ $link->is_active ? 'Active' : 'Inactive' }}
+                    </span>
+                  </td>
+                  <td>
+                    <div class="d-flex gap-2">
+                      <button type="button" onclick="editLink({{ $link->id }}, '{{ $link->platform }}', '{{ $link->url }}', '{{ $link->icon_class }}', {{ $link->order }}, {{ $link->is_active ? 1 : 0 }});" class="btn btn-sm btn-outline-primary">
+                        <i class="bi bi-pencil"></i> Edit
+                      </button>
+                      <form action="{{ route('admin.social-links.destroy', $link) }}" method="POST" style="display:inline;" onsubmit="return confirm('Delete this link?');">
+                        @csrf @method('DELETE')
+                        <button type="submit" class="btn btn-sm btn-outline-danger">
+                          <i class="bi bi-trash"></i> Delete
+                        </button>
+                      </form>
+                    </div>
+                  </td>
+                </tr>
+              @empty
+                <tr>
+                  <td colspan="6" class="text-center py-4" style="color:#858585;">No social links yet</td>
+                </tr>
+              @endforelse
+            </tbody>
+          </table>
+          <!-- End Table with stripped rows -->
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
 
 {{-- Edit Modal --}}
-<div id="editForm" class="card" style="margin-top:16px;max-width:600px;display:none;">
-  <h3 style="margin:0 0 16px;">Edit Social Link</h3>
-  <form id="editFormForm" method="POST">
-    @csrf @method('PUT')
-    <div style="margin-bottom:16px;">
-      <label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Platform *</label>
-      <input type="text" name="platform" id="edit_platform" class="input" required>
-    </div>
-    <div style="margin-bottom:16px;">
-      <label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">URL *</label>
-      <input type="url" name="url" id="edit_url" class="input" required>
-    </div>
-    <div class="row2" style="margin-bottom:16px;">
-      <div>
-        <label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Icon Class</label>
-        <input type="text" name="icon_class" id="edit_icon_class" class="input">
+<div id="editForm" class="card mb-3" style="display:none;">
+  <div class="card-body">
+    <h5 class="card-title mb-3">Edit Social Link</h5>
+    <form id="editFormForm" method="POST">
+      @csrf @method('PUT')
+      
+      <div class="row mb-3">
+        <label for="edit_platform" class="col-sm-2 col-form-label">Platform</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" name="platform" id="edit_platform" required>
+        </div>
       </div>
-      <div>
-        <label style="display:block;margin-bottom:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);">Order</label>
-        <input type="number" name="order" id="edit_order" class="input" min="0">
+
+      <div class="row mb-3">
+        <label for="edit_url" class="col-sm-2 col-form-label">URL</label>
+        <div class="col-sm-10">
+          <input type="url" class="form-control" name="url" id="edit_url" required>
+        </div>
       </div>
-    </div>
-    <div style="margin-bottom:16px;">
-      <label style="display:flex;align-items:center;gap:8px;font-size:12px;">
-        <input type="checkbox" name="is_active" id="edit_is_active" value="1">
-        Active
-      </label>
-    </div>
-    <div class="actions">
-      <button type="submit" class="btn">Update Link</button>
-      <button type="button" onclick="document.getElementById('editForm').style.display='none';" class="btn ghost">Cancel</button>
-    </div>
-  </form>
+
+      <div class="row mb-3">
+        <label for="edit_icon_class" class="col-sm-2 col-form-label">Icon Class</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" name="icon_class" id="edit_icon_class">
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <label for="edit_order" class="col-sm-2 col-form-label">Order</label>
+        <div class="col-sm-10">
+          <input type="number" class="form-control" name="order" id="edit_order" min="0">
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label">Active</label>
+        <div class="col-sm-10">
+          <div class="form-check">
+            <input class="form-check-input" type="checkbox" name="is_active" value="1" id="edit_is_active">
+            <label class="form-check-label" for="edit_is_active">
+              Active
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="row mb-3">
+        <label class="col-sm-2 col-form-label"></label>
+        <div class="col-sm-10">
+          <button type="submit" class="btn btn-primary">
+            <i class="bi bi-save"></i> Update Link
+          </button>
+          <button type="button" onclick="document.getElementById('editForm').style.display='none';" class="btn btn-outline-secondary">Cancel</button>
+        </div>
+      </div>
+    </form>
+  </div>
 </div>
 
 <script>
@@ -147,4 +216,3 @@ function editLink(id, platform, url, iconClass, order, isActive) {
 }
 </script>
 @endsection
-
