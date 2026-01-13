@@ -137,7 +137,7 @@
               <iframe
                 loading="lazy"
                 referrerpolicy="no-referrer-when-downgrade"
-                src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3018.4526627807495!2d-73.40069872296034!3d40.8399844713748!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89e828e8e554dacf%3A0xe75990b88c579c38!2s11%20Ingersoll%20St%2C%20Huntington%20Station%2C%20NY%2011746%2C%20USA!5e0!3m2!1sen!2s!4v1768327147007!5m2!1sen!2s">
+                src="{{ $siteSettings['contact_map_embed'] ?? 'https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3018.4526627807495!2d-73.40069872296034!3d40.8399844713748!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x89e828e8e554dacf%3A0xe75990b88c579c38!2s11%20Ingersoll%20St%2C%20Huntington%20Station%2C%20NY%2011746%2C%20USA!5e0!3m2!1sen!2s!4v1768327147007!5m2!1sen!2s' }}">
               </iframe>              
               <div class="mapNote">
                 {{ $siteSettings['contact_map_note'] ?? 'Google Maps → Share → Embed a map → copy iframe src and paste here.' }}
