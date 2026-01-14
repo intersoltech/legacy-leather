@@ -689,6 +689,7 @@
                 const card = btn.closest(".productCard");
                 if (!card) return;
 
+                const productId = card.dataset.productId || null;
                 const name = card.dataset.name || "Product";
                 const price = Number(card.dataset.price || 0);
                 const img = card.dataset.img || "";
@@ -708,6 +709,7 @@
 
                 try {
                     const data = await postJSON("{{ route('cart.add') }}", {
+                        product_id: productId ? parseInt(productId) : null,
                         name,
                         price,
                         img,

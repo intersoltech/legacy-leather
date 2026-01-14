@@ -156,9 +156,9 @@
                       </a>
                     </th>
                     <td><a href="#" class="text-primary fw-bold">{{ $product->product_name }}</a></td>
-                    <td>${{ number_format($product->avg_price / 100, 2) }}</td>
+                    <td>${{ number_format($product->avg_price, 2) }}</td>
                     <td class="fw-bold">{{ number_format($product->total_sold) }}</td>
-                    <td>${{ number_format($product->total_revenue / 100, 2) }}</td>
+                    <td>${{ number_format($product->total_revenue, 2) }}</td>
                   </tr>
                   @empty
                   <tr>

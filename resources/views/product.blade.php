@@ -704,6 +704,7 @@ document.addEventListener('DOMContentLoaded', function() {
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
         },
         body: JSON.stringify({
+          product_id: product.id,
           name: product.name,
           price: product.price,
           img: product.image || '',
@@ -750,6 +751,7 @@ document.addEventListener('DOMContentLoaded', function() {
           'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.content || ''
         },
         body: JSON.stringify({
+          product_id: product.id,
           name: product.name,
           price: product.price,
           img: product.image || '',

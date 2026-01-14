@@ -15,27 +15,30 @@ class UserDashboardController extends Controller
     {
         $user = $request->user();
         
-        $orders = Order::where('user_id', $user->id)
-            ->orWhere('email', $user->email)
+        // Base query for user's orders (properly grouped to avoid SQL issues)
+        // This ensures we only get orders that belong to this user
+        $baseQuery = Order::where(function($query) use ($user) {
+            $query->where('user_id', $user->id)
+                  ->orWhere('email', $user->email);
+        });
+        
+        // Get orders with proper grouping
+        $orders = (clone $baseQuery)
             ->latest()
             ->paginate(10);
 
+        // Calculate statistics with proper grouping
         $stats = [
-            'total_orders' => Order::where('user_id', $user->id)
-                ->orWhere('email', $user->email)
+            'total_orders' => (clone $baseQuery)->count(),
+            'pending_orders' => (clone $baseQuery)
+                ->where('status', 'pending')
                 ->count(),
-            'pending_orders' => Order::where(function($query) use ($user) {
-                $query->where('user_id', $user->id)
-                      ->orWhere('email', $user->email);
-            })->where('status', 'pending')->count(),
-            'completed_orders' => Order::where(function($query) use ($user) {
-                $query->where('user_id', $user->id)
-                      ->orWhere('email', $user->email);
-            })->where('status', 'completed')->count(),
-            'total_spent' => Order::where(function($query) use ($user) {
-                $query->where('user_id', $user->id)
-                      ->orWhere('email', $user->email);
-            })->where('status', '!=', 'cancelled')->sum('total'),
+            'completed_orders' => (clone $baseQuery)
+                ->where('status', 'completed')
+                ->count(),
+            'total_spent' => (clone $baseQuery)
+                ->where('status', '!=', 'cancelled')
+                ->sum('total'), // Prices are stored as dollars, not cents
         ];
 
         return view('user.dashboard', compact('orders', 'stats'));
@@ -46,12 +49,7 @@ class UserDashboardController extends Controller
      */
     public function showOrder(Request $request, Order $order): View
     {
-        $user = $request->user();
-        
-        // Ensure user owns this order
-        if ($order->user_id !== $user->id && $order->email !== $user->email) {
-            abort(403, 'Unauthorized access to this order.');
-        }
+        $this->authorize('view', $order);
 
         $order->load('items');
 

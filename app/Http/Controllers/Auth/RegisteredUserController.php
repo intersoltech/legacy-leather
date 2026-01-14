@@ -31,7 +31,7 @@ class RegisteredUserController extends Controller
     {
         $request->validate([
             'email' => ['required', 'string', 'lowercase', 'email', 'max:255', 'unique:'.User::class],
-            'password' => ['required', 'confirmed', 'min:6'], // Minimal: just 6 characters minimum
+            'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
         // Auto-generate name from email if not provided

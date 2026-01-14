@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class DashboardController extends Controller
 {
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         // Basic counts
         $productsCount = Product::count();
@@ -47,22 +47,21 @@ class DashboardController extends Controller
         // Total customers
         $customersCount = \App\Models\User::where('is_admin', false)->count();
         
-        // Recent orders (last 10)
-        $recentOrders = Order::with('user')->latest()->take(10)->get();
+        // Recent orders (last 10) with eager loading
+        $recentOrders = Order::with(['user', 'items'])->latest()->take(10)->get();
         
-        // Orders by status
-        $ordersByStatus = Order::select('status', DB::raw('count(*) as count'))
+        // Orders by status (using Eloquent instead of raw SQL)
+        $ordersByStatus = Order::select('status')
+            ->selectRaw('count(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status')
             ->toArray();
         
-        // Revenue by month (last 6 months) for chart
+        // Revenue by month (last 6 months) for chart (using Eloquent)
         $revenueByMonth = Order::where('status', '!=', 'cancelled')
-            ->select(
-                DB::raw('DATE_FORMAT(created_at, "%Y-%m") as month'),
-                DB::raw('SUM(total) as revenue')
-            )
-            ->where('created_at', '>=', now()->subMonths(6))
+            ->where('created_at', '>=', now()->subMonths(6)->startOfMonth())
+            ->selectRaw('DATE_FORMAT(created_at, "%Y-%m") as month')
+            ->selectRaw('SUM(total) as revenue')
             ->groupBy('month')
             ->orderBy('month')
             ->get();
@@ -93,15 +92,11 @@ class DashboardController extends Controller
             $customersData[] = $dayCustomers;
         }
         
-        // Top selling products (by order items) with images
-        $topProducts = DB::table('order_items')
-            ->select(
-                'product_name',
-                'product_image',
-                DB::raw('SUM(qty) as total_sold'),
-                DB::raw('SUM(line_total) as total_revenue'),
-                DB::raw('AVG(unit_price) as avg_price')
-            )
+        // Top selling products (by order items) using Eloquent
+        $topProducts = \App\Models\OrderItem::select('product_name', 'product_image')
+            ->selectRaw('SUM(qty) as total_sold')
+            ->selectRaw('SUM(line_total) as total_revenue')
+            ->selectRaw('AVG(unit_price) as avg_price')
             ->groupBy('product_name', 'product_image')
             ->orderByDesc('total_sold')
             ->take(5)

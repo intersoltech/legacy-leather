@@ -46,8 +46,8 @@
                   </div>
                 </td>
                 <td>{{ $item->qty ?? 1 }}</td>
-                <td>${{ number_format(($item->unit_price ?? 0) / 100, 2) }}</td>
-                <td><strong>${{ number_format(($item->line_total ?? 0) / 100, 2) }}</strong></td>
+                <td>${{ number_format($item->unit_price ?? 0, 2) }}</td>
+                <td><strong>${{ number_format($item->line_total ?? 0, 2) }}</strong></td>
               </tr>
               @empty
               <tr>
@@ -58,17 +58,17 @@
             <tfoot>
               <tr>
                 <td colspan="3" class="text-end"><strong>Subtotal:</strong></td>
-                <td><strong>${{ number_format(($order->subtotal ?? 0) / 100, 2) }}</strong></td>
+                <td><strong>${{ number_format($order->subtotal ?? 0, 2) }}</strong></td>
               </tr>
               @if($order->shipping > 0)
               <tr>
                 <td colspan="3" class="text-end"><strong>Shipping:</strong></td>
-                <td><strong>${{ number_format(($order->shipping ?? 0) / 100, 2) }}</strong></td>
+                <td><strong>${{ number_format($order->shipping ?? 0, 2) }}</strong></td>
               </tr>
               @endif
               <tr>
                 <td colspan="3" class="text-end"><strong>Total:</strong></td>
-                <td><strong style="font-size:1.2em;color:#4154f1;">${{ number_format(($order->total ?? 0) / 100, 2) }}</strong></td>
+                <td><strong style="font-size:1.2em;color:#4154f1;">${{ number_format($order->total ?? 0, 2) }}</strong></td>
               </tr>
             </tfoot>
           </table>

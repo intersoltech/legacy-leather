@@ -80,7 +80,7 @@
 
 <div class="productsGrid" id="grid">
   @foreach($products as $product)
-  <div class="luxCard productCard" data-cat="{{ $product->category }}" data-name="{{ $product->name }}" data-price="{{ $product->price }}"
+  <div class="luxCard productCard" data-product-id="{{ $product->id }}" data-cat="{{ $product->category }}" data-name="{{ $product->name }}" data-price="{{ $product->price }}"
     data-img="{{ image_url($product->image) }}"
     data-desc="{{ $product->description }}"
     data-href="{{ route('product.show', $product->id) }}">
@@ -95,6 +95,7 @@
             <i class="bi bi-eye"></i> View
           </a>
           <button class="luxBtn primary addToCartBtn" type="button" 
+                  data-product-id="{{ $product->id }}"
                   data-name="{{ $product->name }}"
                   data-price="{{ $product->price }}"
                   data-img="{{ image_url($product->image) }}">
@@ -224,6 +225,7 @@ document.addEventListener("click", async (e) => {
   if (!btn) return;
 
   e.preventDefault();
+  const productId = btn.dataset.productId || btn.closest('[data-product-id]')?.dataset.productId || null;
   const name = btn.dataset.name || "Product";
   const price = parseFloat(btn.dataset.price || 0);
   const img = btn.dataset.img || "";
@@ -242,7 +244,13 @@ document.addEventListener("click", async (e) => {
         "X-CSRF-TOKEN": token,
         "Accept": "application/json",
       },
-      body: JSON.stringify({ name, price, img, qty: 1 })
+      body: JSON.stringify({ 
+        product_id: productId ? parseInt(productId) : null,
+        name, 
+        price, 
+        img, 
+        qty: 1 
+      })
     });
 
     if (!response.ok) {

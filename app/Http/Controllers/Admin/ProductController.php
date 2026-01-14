@@ -4,31 +4,28 @@ namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
 use App\Models\Product;
-use Illuminate\Http\Request;
+use App\Http\Requests\StoreProductRequest;
+use App\Http\Requests\UpdateProductRequest;
 use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
-    public function index()
+    public function index(): \Illuminate\View\View
     {
         $products = Product::latest()->paginate(10);
         return view('admin.products.index', compact('products'));
     }
 
-    public function create()
+    public function create(): \Illuminate\View\View
     {
         return view('admin.products.create');
     }
 
-    public function store(Request $request)
+    public function store(StoreProductRequest $request): \Illuminate\Http\RedirectResponse
     {
-        $data = $request->validate([
-            'name'        => 'required|string|max:255',
-            'price'       => 'required|numeric|min:0',
-            'description' => 'nullable|string',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-        ]);
+        $data = $request->validated();
 
         // slug auto generate
         $baseSlug = Str::slug($data['name']);
@@ -38,37 +35,41 @@ class ProductController extends Controller
             $slug = $baseSlug . '-' . $i++;
         }
 
-        $imagePath = null;
-        if ($request->hasFile('image')) {
-            // save in storage/app/public/uploads/products
-            $imagePath = $request->file('image')->store('uploads/products', 'public');
+        try {
+            $imagePath = null;
+            if ($request->hasFile('image')) {
+                // save in storage/app/public/uploads/products
+                $imagePath = $request->file('image')->store('uploads/products', 'public');
+            }
+
+            Product::create([
+                'name'        => $data['name'],
+                'slug'        => $slug,
+                'price'       => $data['price'],
+                'description' => $data['description'] ?? null,
+                'image'       => $imagePath,
+                'category'    => $data['category'] ?? null,
+                'is_active'   => $data['is_active'] ?? true,
+            ]);
+
+            return redirect()->route('admin.products.index')->with('success', 'Product added successfully');
+        } catch (\Exception $e) {
+            Log::error('Product store error: ' . $e->getMessage());
+            if (isset($imagePath)) {
+                Storage::disk('public')->delete($imagePath);
+            }
+            return back()->withInput()->with('error', 'Failed to create product. Please try again.');
         }
-
-        Product::create([
-            'name'        => $data['name'],
-            'slug'        => $slug,
-            'price'       => $data['price'],
-            'description' => $data['description'] ?? null,
-            'image'       => $imagePath,
-        ]);
-
-        return redirect()->route('admin.products.index')->with('success', 'Product added successfully');
     }
 
-    public function edit(Product $product)
+    public function edit(Product $product): \Illuminate\View\View
     {
         return view('admin.products.edit', compact('product'));
     }
 
-    public function update(Request $request, Product $product)
+    public function update(UpdateProductRequest $request, Product $product): \Illuminate\Http\RedirectResponse
     {
-        $data = $request->validate([
-            'name'        => 'required|string|max:255',
-            'price'       => 'required|numeric|min:0',
-            'description' => 'nullable|string',
-            'image'       => 'nullable|image|mimes:jpg,jpeg,png,webp|max:4096',
-            'remove_image'=> 'nullable|boolean',
-        ]);
+        $data = $request->validated();
 
         // If name changed -> update slug safely
         if ($product->name !== $data['name']) {
@@ -84,33 +85,50 @@ class ProductController extends Controller
         $product->name = $data['name'];
         $product->price = $data['price'];
         $product->description = $data['description'] ?? null;
+        $product->category = $data['category'] ?? $product->category;
+        $product->is_active = $data['is_active'] ?? $product->is_active;
 
-        // remove image
-        if ($request->boolean('remove_image') && $product->image) {
-            Storage::disk('public')->delete($product->image);
-            $product->image = null;
+        try {
+            // remove image
+            if ($request->boolean('remove_image') && $product->image) {
+                Storage::disk('public')->delete($product->image);
+                $product->image = null;
+            }
+
+            // upload new image
+            if ($request->hasFile('image')) {
+                if ($product->image) {
+                    Storage::disk('public')->delete($product->image);
+                }
+                $product->image = $request->file('image')->store('uploads/products', 'public');
+            }
+
+            $product->name = $data['name'];
+            $product->price = $data['price'];
+            $product->description = $data['description'] ?? null;
+            $product->category = $data['category'] ?? $product->category;
+            $product->is_active = $data['is_active'] ?? $product->is_active;
+            $product->save();
+
+            return redirect()->route('admin.products.index')->with('success', 'Product updated successfully');
+        } catch (\Exception $e) {
+            Log::error('Product update error: ' . $e->getMessage());
+            return back()->withInput()->with('error', 'Failed to update product. Please try again.');
         }
+    }
 
-        // upload new image
-        if ($request->hasFile('image')) {
+    public function destroy(Product $product): \Illuminate\Http\RedirectResponse
+    {
+        try {
             if ($product->image) {
                 Storage::disk('public')->delete($product->image);
             }
-            $product->image = $request->file('image')->store('uploads/products', 'public');
+            $product->delete();
+
+            return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully');
+        } catch (\Exception $e) {
+            Log::error('Product delete error: ' . $e->getMessage());
+            return back()->with('error', 'Failed to delete product. Please try again.');
         }
-
-        $product->save();
-
-        return redirect()->route('admin.products.index')->with('success', 'Product updated successfully');
-    }
-
-    public function destroy(Product $product)
-    {
-        if ($product->image) {
-            Storage::disk('public')->delete($product->image);
-        }
-        $product->delete();
-
-        return redirect()->route('admin.products.index')->with('success', 'Product deleted successfully');
     }
 }

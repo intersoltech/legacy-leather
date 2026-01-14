@@ -4,6 +4,10 @@ namespace App\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\Schema;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Gate;
+use App\Models\Order;
+use App\Policies\OrderPolicy;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -16,18 +20,35 @@ class AppServiceProvider extends ServiceProvider
     }
 
     /**
+     * Register policies for the application.
+     */
+    protected $policies = [
+        Order::class => OrderPolicy::class,
+    ];
+
+    /**
      * Bootstrap any application services.
      */
     public function boot(): void
     {
         // Fix for MySQL key length issue with utf8mb4
         Schema::defaultStringLength(191);
-        // Share common data with all views
+        
+        // Register policies
+        Gate::policy(Order::class, OrderPolicy::class);
+        
+        // Share common data with all views (with caching to prevent N+1 queries)
         view()->composer('*', function ($view) {
             $view->with([
-                'siteSettings' => $this->getSiteSettings(),
-                'categories' => \App\Models\Category::where('is_active', true)->orderBy('order')->get(),
-                'socialLinks' => \App\Models\SocialLink::where('is_active', true)->orderBy('order')->get(),
+                'siteSettings' => Cache::remember('site_settings', 3600, function () {
+                    return $this->getSiteSettings();
+                }),
+                'categories' => Cache::remember('active_categories', 3600, function () {
+                    return \App\Models\Category::where('is_active', true)->orderBy('order')->get();
+                }),
+                'socialLinks' => Cache::remember('active_social_links', 3600, function () {
+                    return \App\Models\SocialLink::where('is_active', true)->orderBy('order')->get();
+                }),
             ]);
         });
     }

@@ -3,176 +3,110 @@
 namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
+use App\Http\Requests\StoreOrderRequest;
 use App\Models\Cart;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Payment;
 use App\Services\StripeService;
+use App\Services\OrderService;
+use App\Services\CartService;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\DB;
 
 class CheckoutController extends Controller
 {
     protected $stripeService;
+    protected $orderService;
+    protected $cartService;
 
-    public function __construct(StripeService $stripeService)
-    {
+    public function __construct(
+        StripeService $stripeService,
+        OrderService $orderService,
+        CartService $cartService
+    ) {
         $this->stripeService = $stripeService;
+        $this->orderService = $orderService;
+        $this->cartService = $cartService;
     }
-    public function index(Request $request)
+
+    public function index(Request $request): \Illuminate\View\View|\Illuminate\Http\RedirectResponse
     {
         // Ensure user is authenticated
         if (!auth()->check()) {
             return redirect()->route('login')->with('error', 'Please login to proceed with checkout.');
         }
 
-        $token = $request->cookie('cart_token');
-        $cart  = $token ? Cart::with('items')->where('token', $token)->first() : null;
+        try {
+            $token = $request->cookie('cart_token');
+            $cart = $this->cartService->getCartByToken($token);
 
-        $items = $cart?->items ?? collect();
-        $total = $items->sum(fn($i) => (int)$i->price * (int)$i->qty);
+            if (!$cart || $cart->items->isEmpty()) {
+                return redirect()->route('cart')->with('error', 'Your cart is empty. Add items before checkout.');
+            }
 
-        if ($items->isEmpty()) {
-            return redirect()->route('cart')->with('error', 'Your cart is empty. Add items before checkout.');
+            $items = $cart->items;
+            $total = $this->cartService->getTotal($cart);
+
+            return view('checkout', compact('items', 'total'));
+        } catch (\Exception $e) {
+            Log::error('Checkout index error: ' . $e->getMessage());
+            return redirect()->route('cart')->with('error', 'An error occurred. Please try again.');
         }
-
-        return view('checkout', compact('items', 'total'));
     }
 
-    public function place(Request $request)
+    public function place(StoreOrderRequest $request): \Illuminate\Http\RedirectResponse
     {
-        // Ensure user is authenticated
-        if (!auth()->check()) {
-            return redirect()->route('login')->with('error', 'Please login to place an order.');
-        }
+        try {
+            $token = $request->cookie('cart_token');
+            $cart = $this->cartService->getCartByToken($token);
 
-        $token = $request->cookie('cart_token');
-        $cart  = $token ? Cart::with('items')->where('token', $token)->first() : null;
+            if (!$cart || $cart->items->count() === 0) {
+                return redirect()->route('cart')->with('error', 'Cart is empty.');
+            }
 
-        if (!$cart || $cart->items->count() === 0) {
-            return redirect()->route('cart')->with('error', 'Cart is empty.');
-        }
+            $data = $request->validated();
+            $total = $this->orderService->calculateCartTotal($cart);
+            $userId = auth()->id();
 
-        // Validation
-        $data = $request->validate([
-            'first_name' => 'required|string|max:255',
-            'last_name'  => 'required|string|max:255',
-            'email'      => 'required|email|max:255',
-            'phone'      => 'required|string|max:50',
-            'address'    => 'required|string|max:500',
-            'city'       => 'required|string|max:255',
-            'country'    => 'required|string|max:255',
-            'postal_code'=> 'nullable|string|max:20',
-            'notes'      => 'nullable|string',
-            'payment_method' => 'required|string|in:cod,card,bank,stripe',
-        ]);
+            // If Stripe payment, create checkout session
+            if ($data['payment_method'] === 'stripe') {
+                $orderRef = $this->orderService->generateOrderRef();
+                $userEmail = auth()->user()?->email ?? $data['email'];
+                return $this->handleStripeCheckout($cart, $data, $orderRef, $total, $userId, $userEmail);
+            }
 
-        $total = $cart->items->sum(fn($i) => (int)$i->price * (int)$i->qty);
+            // For other payment methods, create order using service
+            $order = $this->orderService->createOrderFromCart($cart, $data, $userId, $total);
 
-        // Generate order reference
-        $orderRef = 'LLW-' . strtoupper(substr(bin2hex(random_bytes(6)), 0, 12));
-        
-        // Generate order number (sequential or based on timestamp)
-        $orderNumber = $this->generateOrderNumber();
-        
-        // Link to user if logged in
-        $userId = auth()->id();
-        $userEmail = auth()->user()?->email ?? $data['email'];
-
-        // If Stripe payment, create checkout session
-        if ($data['payment_method'] === 'stripe') {
-            return $this->handleStripeCheckout($cart, $data, $orderRef, $total, $userId, $userEmail);
-        }
-
-        // For other payment methods, create order directly
-        $order = Order::create([
-            'user_id' => $userId,
-            'order_ref' => $orderRef,
-            'order_number' => $orderNumber,
-            'first_name' => $data['first_name'],
-            'last_name'  => $data['last_name'],
-            'email'      => $userEmail,
-            'phone'      => $data['phone'],
-            'address'    => $data['address'],
-            'city'       => $data['city'],
-            'country'    => $data['country'],
-            'postal_code'=> $data['postal_code'] ?? null,
-            'notes'      => $data['notes'] ?? null,
-            'payment_method' => $data['payment_method'],
-            'subtotal'   => (int)$total,
-            'shipping'   => 0,
-            'total'      => (int)$total,
-            'status'     => $data['payment_method'] === 'cod' ? 'pending' : 'pending',
-        ]);
-
-        foreach ($cart->items as $item) {
-            OrderItem::create([
-                'order_id' => $order->id,
-                'product_name' => $item->name,
-                'product_image' => $item->img ?? null,
-                'unit_price' => (int)$item->price,
-                'qty'   => (int)$item->qty,
-                'line_total' => (int)$item->price * (int)$item->qty,
+            return redirect()->route('thankyou', ['order' => $order->order_ref])
+                ->with('success', 'Order placed successfully!');
+        } catch (\Exception $e) {
+            Log::error('Order placement failed: ' . $e->getMessage(), [
+                'user_id' => auth()->id(),
+                'cart_token' => $request->cookie('cart_token'),
+                'trace' => $e->getTraceAsString()
             ]);
+            return redirect()->route('checkout')
+                ->with('error', 'Failed to create order. Please try again or contact support.');
         }
-
-        // Create payment record for non-Stripe payment methods
-        $paymentStatus = $data['payment_method'] === 'cod' ? 'pending' : 'pending';
-        Payment::create([
-            'order_id' => $order->id,
-            'payment_method' => $data['payment_method'],
-            'provider' => null, // COD and bank transfers don't have a provider
-            'status' => $paymentStatus,
-            'amount' => (int)$total,
-            'currency' => 'USD',
-        ]);
-
-        // Clear cart after order
-        $cart->items()->delete();
-
-        return redirect()->route('thankyou', ['order' => $order->order_ref]);
     }
 
     /**
      * Handle Stripe checkout session creation
      */
-    protected function handleStripeCheckout($cart, $data, $orderRef, $total, $userId, $userEmail)
+    protected function handleStripeCheckout($cart, $data, $orderRef, $total, $userId, $userEmail): \Illuminate\Http\RedirectResponse
     {
         try {
-            // Generate order number
-            $orderNumber = $this->generateOrderNumber();
-            
-            // Create order first (pending status)
-            $order = Order::create([
-                'user_id' => $userId,
-                'order_ref' => $orderRef,
-                'order_number' => $orderNumber,
-                'first_name' => $data['first_name'],
-                'last_name'  => $data['last_name'],
-                'email'      => $userEmail,
-                'phone'      => $data['phone'],
-                'address'    => $data['address'],
-                'city'       => $data['city'],
-                'country'    => $data['country'],
-                'postal_code'=> $data['postal_code'] ?? null,
-                'notes'      => $data['notes'] ?? null,
-                'payment_method' => 'stripe',
-                'subtotal'   => (int)$total,
-                'shipping'   => 0,
-                'total'      => (int)$total,
-                'status'     => 'pending',
-            ]);
+            DB::beginTransaction();
 
-            // Create order items
-            foreach ($cart->items as $item) {
-                OrderItem::create([
-                    'order_id' => $order->id,
-                    'product_name' => $item->name,
-                    'product_image' => $item->img ?? null,
-                    'unit_price' => (int)$item->price,
-                    'qty'   => (int)$item->qty,
-                    'line_total' => (int)$item->price * (int)$item->qty,
-                ]);
-            }
+            // Create order using service
+            $order = $this->orderService->createOrderFromCart(
+                $cart,
+                array_merge($data, ['payment_method' => 'stripe']),
+                $userId,
+                $total
+            );
 
             // Prepare line items for Stripe
             $lineItems = [];
@@ -199,21 +133,16 @@ class CheckoutController extends Controller
                 route('checkout.stripe.cancel', ['order' => $orderRef])
             );
 
-            // Create payment record
-            Payment::create([
-                'order_id' => $order->id,
-                'payment_method' => 'stripe',
-                'provider' => 'stripe',
-                'status' => 'pending',
-                'amount' => (int)$total,
-                'currency' => 'USD',
-                'provider_session_id' => $session->id,
-            ]);
+            // Create payment record using service
+            $this->orderService->createPayment($order, 'stripe', $total, $session->id);
+
+            DB::commit();
 
             // Redirect to Stripe Checkout
             return redirect($session->url);
 
         } catch (\Exception $e) {
+            DB::rollBack();
             Log::error('Stripe checkout failed: ' . $e->getMessage());
             return redirect()->route('checkout')
                 ->with('error', 'Failed to process payment. Please try again.');
@@ -223,7 +152,7 @@ class CheckoutController extends Controller
     /**
      * Handle Stripe checkout success
      */
-    public function stripeSuccess(Request $request)
+    public function stripeSuccess(Request $request): \Illuminate\Http\RedirectResponse
     {
         $orderRef = $request->get('order');
         $sessionId = $request->get('session_id');
@@ -247,12 +176,12 @@ class CheckoutController extends Controller
                         'status' => 'paid',
                     ]);
 
-                    // Clear cart
+                    // Clear cart using service
                     $token = $request->cookie('cart_token');
                     if ($token) {
-                        $cart = Cart::where('token', $token)->first();
+                        $cart = $this->cartService->getCartByToken($token);
                         if ($cart) {
-                            $cart->items()->delete();
+                            $this->cartService->clearCart($cart);
                         }
                     }
 
@@ -277,7 +206,7 @@ class CheckoutController extends Controller
     /**
      * Handle Stripe checkout cancellation
      */
-    public function stripeCancel(Request $request)
+    public function stripeCancel(Request $request): \Illuminate\Http\RedirectResponse
     {
         $orderRef = $request->get('order');
         
@@ -298,31 +227,23 @@ class CheckoutController extends Controller
             ->with('error', 'Payment was cancelled. You can try again.');
     }
 
-    public function thankYou(Request $request)
+    public function thankYou(Request $request): \Illuminate\View\View
     {
-        $orderRef = $request->get('order');
-        $order = $orderRef ? Order::where('order_ref', $orderRef)->with('items')->first() : null;
+        try {
+            $orderRef = $request->get('order');
+            $order = $orderRef ? Order::where('order_ref', $orderRef)->with('items')->first() : null;
 
-        return view('thank-you', compact('order'));
-    }
+            if (!$order) {
+                return view('thank-you', ['order' => null])
+                    ->with('error', 'Order not found.');
+            }
 
-    /**
-     * Generate a unique order number
-     * Format: ORD-YYYYMMDD-XXXXX (e.g., ORD-20260112-12345)
-     */
-    protected function generateOrderNumber(): string
-    {
-        $date = now()->format('Ymd');
-        $random = strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
-        
-        $orderNumber = "ORD-{$date}-{$random}";
-        
-        // Ensure uniqueness
-        while (Order::where('order_number', $orderNumber)->exists()) {
-            $random = strtoupper(substr(bin2hex(random_bytes(3)), 0, 5));
-            $orderNumber = "ORD-{$date}-{$random}";
+            return view('thank-you', compact('order'));
+        } catch (\Exception $e) {
+            Log::error('Thank you page error: ' . $e->getMessage());
+            return view('thank-you', ['order' => null])
+                ->with('error', 'An error occurred while loading order details.');
         }
-        
-        return $orderNumber;
     }
+
 }

@@ -27,7 +27,7 @@
     </div>
     <div class="card" style="border:1px solid rgba(0,0,0,.10);border-radius:18px;padding:18px;background:#fff;">
       <div style="font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#666;margin-bottom:8px;">Total Spent</div>
-      <div style="font-size:32px;font-weight:800;color:var(--brown);">${{ number_format($stats['total_spent'], 0) }}</div>
+      <div style="font-size:32px;font-weight:800;color:var(--brown);">${{ number_format($stats['total_spent'], 2) }}</div>
     </div>
   </div>
 
@@ -65,7 +65,7 @@
                     Placed on {{ $order->created_at->format('M d, Y') }}
                   </div>
                   <div style="font-size:13px;color:#666;">
-                    {{ $order->items->count() }} item(s) • Total: <strong style="color:var(--brown);">${{ number_format($order->total, 0) }}</strong>
+                    {{ $order->items->count() }} item(s) • Total: <strong style="color:var(--brown);">${{ number_format($order->total, 2) }}</strong>
                   </div>
                 </div>
                 <div>

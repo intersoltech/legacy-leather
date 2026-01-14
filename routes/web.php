@@ -51,11 +51,13 @@ Route::get('/product', function () {
 */
 
 Route::get('/cart', [CartController::class, 'index'])->name('cart');
-Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
-Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
-Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
-Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
-Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+Route::middleware('throttle:60,1')->group(function () {
+    Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+    Route::post('/cart/update', [CartController::class, 'update'])->name('cart.update');
+    Route::post('/cart/remove', [CartController::class, 'remove'])->name('cart.remove');
+    Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+    Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
+});
 
 /*
 |--------------------------------------------------------------------------
@@ -63,16 +65,25 @@ Route::get('/cart/count', [CartController::class, 'count'])->name('cart.count');
 |--------------------------------------------------------------------------
 */
 
-// Checkout routes require authentication
+// Checkout routes require authentication and rate limiting
+// GET routes (viewing pages) have higher limit, POST routes (placing orders) have lower limit
 Route::middleware('auth')->group(function () {
-    Route::get('/checkout', [CheckoutController::class, 'index'])->name('checkout');
+    // View checkout page - higher limit for page loads
+    Route::get('/checkout', [CheckoutController::class, 'index'])
+        ->middleware('throttle:60,1')
+        ->name('checkout');
+    
+    // Place order - lower limit to prevent abuse
     Route::post('/checkout/place', [CheckoutController::class, 'place'])
+        ->middleware('throttle:5,1')
         ->name('checkout.place');
 
-    // Stripe Checkout routes
+    // Stripe Checkout routes - higher limit for redirects
     Route::get('/checkout/stripe/success', [CheckoutController::class, 'stripeSuccess'])
+        ->middleware('throttle:30,1')
         ->name('checkout.stripe.success');
     Route::get('/checkout/stripe/cancel', [CheckoutController::class, 'stripeCancel'])
+        ->middleware('throttle:30,1')
         ->name('checkout.stripe.cancel');
 });
 

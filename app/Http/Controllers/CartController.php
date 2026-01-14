@@ -5,155 +5,170 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use App\Models\Cart;
 use App\Models\CartItem;
+use App\Services\CartService;
+use Illuminate\Support\Facades\Log;
 
 class CartController extends Controller
 {
-    public function index(Request $request)
-    {
-        $cart = $this->getCart($request);
-        $items = $cart->items()->get();
-        $total = $items->sum(fn($i) => (int)$i->price * (int)$i->qty);
+    protected $cartService;
 
-        return view('cart', compact('items','total'));
+    public function __construct(CartService $cartService)
+    {
+        $this->cartService = $cartService;
     }
 
-    public function count(Request $request)
+    public function index(Request $request): \Illuminate\View\View
     {
-        $token = $request->cookie('cart_token');
-        if(!$token){
-            return response()->json(['count'=>0]);
-        }
+        try {
+            $cart = $this->cartService->getOrCreateCart($request);
+            $items = $cart->items;
+            $total = $this->cartService->getTotal($cart);
 
-        $cart = Cart::where('token',$token)->first();
-        if(!$cart){
-            return response()->json(['count'=>0]);
+            return view('cart', compact('items', 'total'));
+        } catch (\Exception $e) {
+            Log::error('Cart index error: ' . $e->getMessage());
+            return view('cart', ['items' => collect(), 'total' => 0])
+                ->with('error', 'An error occurred while loading your cart.');
         }
-
-        return response()->json(['count'=>(int)$cart->items()->sum('qty')]);
     }
 
-    public function add(Request $request)
+    public function count(Request $request): \Illuminate\Http\JsonResponse
     {
-        $data = $request->validate([
-            'name'  => 'required|string|max:255',
-            'price' => 'required|numeric|min:0',
-            'img'   => 'nullable|string|max:500',
-            'qty'   => 'nullable|integer|min:1',
-        ]);
+        try {
+            $token = $request->cookie('cart_token');
+            $cart = $this->cartService->getCartByToken($token);
 
-        $cart = $this->getCart($request);
-        $qty  = (int)($data['qty'] ?? 1);
+            $count = $cart ? $this->cartService->getItemCount($cart) : 0;
 
-        $item = CartItem::where('cart_id', $cart->id)
-            ->where('name', $data['name'])
-            ->first();
+            return response()->json(['count' => $count]);
+        } catch (\Exception $e) {
+            Log::error('Cart count error: ' . $e->getMessage());
+            return response()->json(['count' => 0]);
+        }
+    }
 
-        if ($item) {
-            $item->qty += $qty;
-            $item->price = (int)round($data['price']); // Update price in case it changed
-            $item->save();
-        } else {
-            $cart->items()->create([
-                'name'  => $data['name'],
-                'price' => (int)round($data['price']), // Convert to integer (prices stored as cents or whole dollars)
-                'img'   => $data['img'] ?? null,
-                'qty'   => $qty,
+    public function add(Request $request): \Illuminate\Http\JsonResponse|\Illuminate\Http\RedirectResponse
+    {
+        try {
+            $data = $request->validate([
+                'product_id' => 'nullable|integer|exists:products,id',
+                'name' => 'required|string|max:255',
+                'price' => 'required|numeric|min:0',
+                'img' => 'nullable|string|max:500',
+                'qty' => 'nullable|integer|min:1',
             ]);
+
+            $cart = $this->cartService->getOrCreateCart($request);
+            $this->cartService->addItem($cart, $data);
+            
+            $count = $this->cartService->getItemCount($cart);
+
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => true, 'count' => $count]);
+            }
+
+            return redirect()->back()->with('success', 'Added to cart!');
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => false, 'errors' => $e->errors()], 422);
+            }
+            return redirect()->back()->withErrors($e->errors());
+        } catch (\Exception $e) {
+            Log::error('Cart add error: ' . $e->getMessage());
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => false, 'message' => 'Failed to add item to cart'], 500);
+            }
+            return redirect()->back()->with('error', 'Failed to add item to cart. Please try again.');
         }
-
-        $count = (int)$cart->items()->sum('qty');
-
-        if ($request->expectsJson()) {
-            return response()->json(['ok'=>true,'count'=>$count]);
-        }
-
-        return redirect()->back()->with('success', 'Added to cart!');
     }
 
-    public function update(Request $request)
+    public function update(Request $request): \Illuminate\Http\JsonResponse
     {
-        $data = $request->validate([
-            'id'  => 'required|integer|exists:cart_items,id',
-            'qty' => 'required|integer|min:1',
-        ]);
+        try {
+            $data = $request->validate([
+                'id' => 'required|integer|exists:cart_items,id',
+                'qty' => 'required|integer|min:1',
+            ]);
 
-        $token = $request->cookie('cart_token');
-        $cart = Cart::where('token',$token)->firstOrFail();
+            $token = $request->cookie('cart_token');
+            $cart = $this->cartService->getCartByToken($token);
+            
+            if (!$cart) {
+                return response()->json(['ok' => false, 'message' => 'Cart not found'], 404);
+            }
 
-        $item = CartItem::where('cart_id',$cart->id)->where('id',$data['id'])->firstOrFail();
-        $item->qty = (int)$data['qty'];
-        $item->save();
+            $item = $this->cartService->updateItem($cart, $data['id'], (int)$data['qty']);
+            
+            $cart->refresh();
+            $count = $this->cartService->getItemCount($cart);
+            $subtotal = $this->cartService->getTotal($cart);
 
-        // Return updated cart data
-        $cart->refresh();
-        $items = $cart->items()->get();
-        $count = (int)$cart->items()->sum('qty');
-        $subtotal = $items->sum(fn($i) => (int)$i->price * (int)$i->qty);
-
-        return response()->json([
-            'ok' => true,
-            'count' => $count,
-            'subtotal' => $subtotal,
-            'item' => [
-                'id' => $item->id,
-                'qty' => $item->qty,
-                'price' => $item->price,
-                'line_total' => (int)$item->price * (int)$item->qty,
-            ]
-        ]);
-    }
-
-    public function remove(Request $request)
-    {
-        $data = $request->validate([
-            'id' => 'required|integer|exists:cart_items,id',
-        ]);
-
-        $token = $request->cookie('cart_token');
-        $cart = Cart::where('token',$token)->firstOrFail();
-
-        CartItem::where('cart_id',$cart->id)->where('id',$data['id'])->delete();
-
-        // Return updated cart data
-        $cart->refresh();
-        $count = (int)$cart->items()->sum('qty');
-        $items = $cart->items()->get();
-        $subtotal = $items->sum(fn($i) => (int)$i->price * (int)$i->qty);
-
-        return response()->json([
-            'ok' => true,
-            'count' => $count,
-            'subtotal' => $subtotal,
-        ]);
-    }
-
-    public function clear(Request $request)
-    {
-        $token = $request->cookie('cart_token');
-        $cart = Cart::where('token',$token)->first();
-
-        if($cart){
-            $cart->items()->delete();
+            return response()->json([
+                'ok' => true,
+                'count' => $count,
+                'subtotal' => $subtotal,
+                'item' => [
+                    'id' => $item->id,
+                    'qty' => $item->qty,
+                    'price' => $item->price,
+                    'line_total' => (int)$item->price * (int)$item->qty,
+                ]
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['ok' => false, 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('Cart update error: ' . $e->getMessage());
+            return response()->json(['ok' => false, 'message' => 'Failed to update cart item'], 500);
         }
-
-        return response()->json(['ok'=>true]);
     }
 
-    private function getCart(Request $request)
+    public function remove(Request $request): \Illuminate\Http\JsonResponse
     {
-        $token = $request->cookie('cart_token');
+        try {
+            $data = $request->validate([
+                'id' => 'required|integer|exists:cart_items,id',
+            ]);
 
-        if ($token) {
-            $cart = Cart::where('token', $token)->first();
-            if ($cart) return $cart;
+            $token = $request->cookie('cart_token');
+            $cart = $this->cartService->getCartByToken($token);
+            
+            if (!$cart) {
+                return response()->json(['ok' => false, 'message' => 'Cart not found'], 404);
+            }
+
+            $this->cartService->removeItem($cart, $data['id']);
+
+            $cart->refresh();
+            $count = $this->cartService->getItemCount($cart);
+            $subtotal = $this->cartService->getTotal($cart);
+
+            return response()->json([
+                'ok' => true,
+                'count' => $count,
+                'subtotal' => $subtotal,
+            ]);
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            return response()->json(['ok' => false, 'errors' => $e->errors()], 422);
+        } catch (\Exception $e) {
+            Log::error('Cart remove error: ' . $e->getMessage());
+            return response()->json(['ok' => false, 'message' => 'Failed to remove item from cart'], 500);
         }
+    }
 
-        $cart = Cart::create([
-            'token' => bin2hex(random_bytes(16)),
-        ]);
+    public function clear(Request $request): \Illuminate\Http\JsonResponse
+    {
+        try {
+            $token = $request->cookie('cart_token');
+            $cart = $this->cartService->getCartByToken($token);
 
-        cookie()->queue(cookie('cart_token', $cart->token, 60 * 24 * 30));
+            if ($cart) {
+                $this->cartService->clearCart($cart);
+            }
 
-        return $cart;
+            return response()->json(['ok' => true]);
+        } catch (\Exception $e) {
+            Log::error('Cart clear error: ' . $e->getMessage());
+            return response()->json(['ok' => false, 'message' => 'Failed to clear cart'], 500);
+        }
     }
 }

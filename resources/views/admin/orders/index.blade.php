@@ -36,7 +36,7 @@
                 <tr>
                   <td><strong>{{ $o->order_ref ?? $o->order_number ?? ('#'.$o->id) }}</strong></td>
                   <td>{{ $o->first_name ?? '' }} {{ $o->last_name ?? '' }}</td>
-                  <td>${{ number_format(($o->total ?? 0) / 100, 2) }}</td>
+                  <td>${{ number_format($o->total ?? 0, 2) }}</td>
                   <td>
                     <span class="badge 
                       @if($o->status === 'completed') bg-success
