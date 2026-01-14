@@ -2,6 +2,25 @@
 
 @section('title', 'Shop • Legacy Leather Works')
 
+@section('meta_description', 'Browse our collection of premium leather goods. Handcrafted leather bags, accessories, and more. Shop now at Legacy Leather Works.')
+@section('meta_keywords', 'leather shop, buy leather goods, leather bags online, premium leather accessories, Legacy Leather Works shop')
+@section('og_title', 'Shop Premium Leather Goods • Legacy Leather Works')
+@section('og_description', 'Browse our collection of premium leather goods. Handcrafted leather bags, accessories, and more.')
+@section('og_type', 'website')
+@section('canonical_url', route('shop'))
+
+@section('structured_data')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "CollectionPage",
+  "name": "Shop • Legacy Leather Works",
+  "description": "Browse our collection of premium leather goods",
+  "url": "{{ route('shop') }}"
+}
+</script>
+@endsection
+
 @push('styles')
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css"/>
 @endpush

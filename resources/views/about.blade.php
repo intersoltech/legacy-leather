@@ -2,6 +2,12 @@
 
 @section('title', 'About • Legacy Leather Works')
 
+@section('meta_description', 'Learn about Legacy Leather Works - premium leather goods crafted for an international lifestyle with timeless silhouettes and luxury materials.')
+@section('og_title', 'About Us • Legacy Leather Works')
+@section('og_description', 'Learn about Legacy Leather Works - premium leather goods crafted for an international lifestyle.')
+@section('og_type', 'website')
+@section('canonical_url', route('about'))
+
 @section('content')
 <!-- HERO -->
 <section class="aboutHero">

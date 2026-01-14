@@ -2,6 +2,30 @@
 
 @section('title', 'Contact • Legacy Leather Works')
 
+@section('meta_description', 'Get in touch with Legacy Leather Works. Contact us for inquiries about our premium leather goods, custom orders, or customer support.')
+@section('og_title', 'Contact Us • Legacy Leather Works')
+@section('og_description', 'Get in touch with Legacy Leather Works. Contact us for inquiries about our premium leather goods.')
+@section('og_type', 'website')
+@section('canonical_url', route('contact'))
+
+@section('structured_data')
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "ContactPage",
+  "name": "Contact • Legacy Leather Works",
+  "description": "Get in touch with Legacy Leather Works",
+  "url": "{{ route('contact') }}",
+  "mainEntity": {
+    "@@type": "Organization",
+    "name": "{{ $siteSettings['site_name'] ?? 'Legacy Leather Works' }}",
+    "email": "{{ $siteSettings['email'] ?? '' }}",
+    "telephone": "{{ $siteSettings['whatsapp_number'] ?? '' }}"
+  }
+}
+</script>
+@endsection
+
 @push('styles')
 <style>
   .hero::before{

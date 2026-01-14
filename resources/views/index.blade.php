@@ -2,6 +2,48 @@
 
 @section('title', 'Legacy Leather Works')
 
+@section('meta_description', 'Premium leather goods crafted for an international lifestyle. Shop timeless silhouettes, clean finishing, and luxury materials at Legacy Leather Works.')
+
+@section('og_title', 'Legacy Leather Works - Premium Leather Goods')
+@section('og_description', 'Premium leather goods crafted for an international lifestyle. Shop timeless silhouettes, clean finishing, and luxury materials.')
+@section('og_image', asset('assets/img/logo.png'))
+@section('og_type', 'website')
+
+@section('structured_data')
+@php
+$socialUrls = [];
+if (isset($socialLinks) && $socialLinks->isNotEmpty()) {
+    foreach ($socialLinks as $link) {
+        $socialUrls[] = $link->url;
+    }
+}
+$sameAsJson = '';
+if (!empty($socialUrls)) {
+    $quotedUrls = [];
+    foreach ($socialUrls as $url) {
+        $quotedUrls[] = '"' . addslashes($url) . '"';
+    }
+    $sameAsJson = ',"sameAs":[' . implode(',', $quotedUrls) . ']';
+}
+@endphp
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "Organization",
+  "name": "{{ $siteSettings['site_name'] ?? 'Legacy Leather Works' }}",
+  "url": "{{ url('/') }}",
+  "logo": "{{ image_url($siteSettings['site_logo'] ?? null, asset('assets/img/logo.png')) }}",
+  "description": "{{ $siteSettings['footer_description'] ?? 'Premium leather goods crafted for an international lifestyle — timeless silhouettes, clean finishing, and luxury materials.' }}",
+  "contactPoint": {
+    "@@type": "ContactPoint",
+    "telephone": "{{ $siteSettings['whatsapp_number'] ?? '' }}",
+    "contactType": "Customer Service",
+    "email": "{{ $siteSettings['email'] ?? '' }}"
+  }{!! $sameAsJson !!}
+}
+</script>
+@endsection
+
 @section('content')
     <section class="heroBanner" id="heroBanner">
         <div class="heroImgTrack" id="heroImgTrack">

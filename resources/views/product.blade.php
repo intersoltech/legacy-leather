@@ -2,6 +2,56 @@
 
 @section('title', ($product->name ?? 'Product') . ' • Legacy Leather Works')
 
+@if($product ?? null)
+@php
+  $productDescription = strip_tags($product->description ?? 'Premium leather product from Legacy Leather Works');
+  $metaDescription = strlen($productDescription) > 160 ? substr($productDescription, 0, 157) . '...' : $productDescription;
+  $ogDescription = strlen($productDescription) > 200 ? substr($productDescription, 0, 197) . '...' : $productDescription;
+@endphp
+@endif
+
+@if($product ?? null)
+@section('meta_description', $metaDescription)
+@section('meta_keywords', ($product->name ?? '') . ', leather goods, premium leather, ' . ($product->category ?? '') . ', Legacy Leather Works')
+@section('og_title', ($product->name ?? 'Product') . ' • Legacy Leather Works')
+@section('og_description', $ogDescription)
+@section('og_image', image_url($product->image ?? null, asset('assets/img/logo.png')))
+@section('og_type', 'product')
+@section('og_url', route('product.show', $product->id))
+@section('canonical_url', route('product.show', $product->id))
+@endif
+
+@if($product ?? null)
+@section('structured_data')
+@php
+$categoryJson = $product->category ? '"category": "' . addslashes($product->category) . '",' : '';
+@endphp
+<script type="application/ld+json">
+{
+  "@@context": "https://schema.org",
+  "@@type": "Product",
+  "name": "{{ $product->name }}",
+  "description": "{{ strip_tags($product->description ?? '') }}",
+  "image": "{{ image_url($product->image ?? null, asset('assets/img/logo.png')) }}",
+  "brand": {
+    "@@type": "Brand",
+    "name": "{{ $siteSettings['site_name'] ?? 'Legacy Leather Works' }}"
+  },
+  "offers": {
+    "@@type": "Offer",
+    "url": "{{ route('product.show', $product->id) }}",
+    "priceCurrency": "{{ $siteSettings['default_currency'] ?? 'USD' }}",
+    "price": "{{ $product->price }}",
+    "availability": "https://schema.org/{{ $product->is_active ? 'InStock' : 'OutOfStock' }}",
+    "itemCondition": "https://schema.org/NewCondition"
+  }@if($product->category),
+  "category": "{{ $product->category }}"@endif,
+  "sku": "{{ $product->id }}"
+}
+</script>
+@endsection
+@endif
+
 @push('styles')
 <style>
   :root {

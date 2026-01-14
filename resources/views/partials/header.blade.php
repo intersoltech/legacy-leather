@@ -30,7 +30,10 @@
                     <span class="btn-text">{{ auth()->user()->name }}</span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                    @if (auth()->user()->is_admin)
+                    @php
+                        $isAdmin = auth()->user()->is_admin ?? false;
+                    @endphp
+                    @if($isAdmin)
                         <li>
                             <a class="dropdown-item" href="{{ route('admin.dashboard') }}">
                                 <i class="bi bi-shield-check"></i>
